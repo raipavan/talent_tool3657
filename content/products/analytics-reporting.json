@@ -1,0 +1,88 @@
+{
+  "order": 8,
+  "slug": "analytics-reporting",
+  "icon": "chart",
+  "mock": 7,
+  "bot": 4,
+  "kind": "layer",
+  "title": "Analytics & Reporting",
+  "summary": "Live recruitment KPI dashboards, source effectiveness, diversity and funnel reports.",
+  "headline": "See what’s working. *Fix what isn’t.*",
+  "lede": "Every hire leaves a trail of data. TalentPool365 turns it into simple, live reports, so you can improve speed, quality and cost across your whole recruitment process.",
+  "sectionIntro": "Every hire leaves a trail of data. TalentPool365 turns it into simple, live reports, so you can improve speed, quality and cost across your whole recruitment process.",
+  "capabilities": [
+    {
+      "id": "recruitment-kpi-dashboard",
+      "title": "Recruitment KPI Dashboard",
+      "tagline": "Your hiring scorecard, always up to date.",
+      "body": "Live view of time-to-hire, cost-per-hire and offer acceptance. Track your core hiring metrics in real time with filters for role, team, location and period.",
+      "points": [
+        "Live view of time-to-hire, cost-per-hire and offer acceptance",
+        "Filters by role, team, location and period",
+        "One-click shareable reports for leadership",
+        "Executive trend lines and benchmark comparisons"
+      ]
+    },
+    {
+      "id": "source-effectiveness",
+      "title": "Source Effectiveness",
+      "tagline": "Know which channels bring your best hires.",
+      "body": "Compare job boards, employee referrals, agency submissions and social sourcing to see where your highest performing candidates actually originate.",
+      "points": [
+        "Compare job boards, referrals and social sourcing",
+        "Track quality and hires per source, not just applicant volume",
+        "Reduce spend on channels that don’t convert",
+        "Cost-per-qualified-candidate breakdown by channel"
+      ]
+    },
+    {
+      "id": "diversity-analytics",
+      "title": "Diversity Analytics",
+      "tagline": "Make inclusive hiring measurable.",
+      "body": "Measure pipeline equity and stage progression with aggregated, anonymized insights that protect candidate privacy while surfacing systemic drop-offs.",
+      "points": [
+        "Anonymized, aggregated pipeline insights",
+        "Spot stages where candidates drop off unevenly",
+        "Track progress toward your inclusion goals",
+        "Compliance reporting ready for audit review"
+      ]
+    },
+    {
+      "id": "hiring-funnel-analysis",
+      "title": "Hiring Funnel Analysis",
+      "tagline": "Find the bottleneck, then remove it.",
+      "body": "Inspect conversion rates and time elapsed between every recruitment milestone. Discover where delays happen and streamline the hand-offs.",
+      "points": [
+        "Conversion rate and time spent at every stage",
+        "Drop-off insights from application to joining",
+        "Compare funnels across roles and teams",
+        "Diagnostic alerts when stage dwell time exceeds threshold"
+      ]
+    },
+    {
+      "id": "recruiter-productivity",
+      "title": "Recruiter Productivity",
+      "tagline": "Better insight, better support for your team.",
+      "body": "View activity and outcomes across your talent acquisition team to balance workloads, identify coaching opportunities and celebrate top performers.",
+      "points": [
+        "Activity and outcomes by recruiter",
+        "Workload balance across the team",
+        "Benchmarks that show where coaching helps",
+        "Capacity planning for future hiring surges"
+      ]
+    }
+  ],
+  "outcomes": [
+    { "value": "100%", "label": "automated executive hiring reporting" },
+    { "value": "34%", "label": "reduction in recruiting budget waste" },
+    { "value": "14 days", "label": "average time saved per hire" }
+  ],
+  "closingCta": {
+    "headline": "Make every hiring decision a data-backed one.",
+    "body": "See how TalentPool365 turns recruitment data into actionable hiring power.",
+    "buttons": [
+      { "label": "Book a Demo", "href": "/get-started#book-meeting", "primary": true },
+      { "label": "Start Free Trial", "href": "/get-started#start-free-trial", "primary": false }
+    ]
+  }
+}
