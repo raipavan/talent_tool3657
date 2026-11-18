@@ -27,10 +27,10 @@ export function Hero() {
     <section className="hero hero--centered on-dark" id="home" ref={sectionRef}>
       <img
         className="hero-bg"
-        src="/assets/hero-aurevia-bg.jpg"
+        src="/assets/hero-aurevia-bg.png"
         alt=""
-        width={2048}
-        height={1142}
+        width={2752}
+        height={1536}
         decoding="sync"
         fetchPriority="high"
         aria-hidden="true"
