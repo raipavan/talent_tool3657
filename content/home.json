@@ -1,8 +1,8 @@
 {
   "heroRoles": [
+    "operators",
     "engineers",
     "analysts",
-    "operators",
     "cashiers",
     "advisors"
   ],

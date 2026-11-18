@@ -25,7 +25,19 @@ export function Hero() {
 
   return (
     <section className="hero hero--centered on-dark" id="home" ref={sectionRef}>
-      <div className="container hero-split">
+      <img
+        className="hero-bg"
+        src="/assets/hero-aurevia-bg.jpg"
+        alt=""
+        width={2048}
+        height={1142}
+        decoding="sync"
+        fetchPriority="high"
+        aria-hidden="true"
+      />
+      <span className="hero-atmosphere" aria-hidden="true" />
+
+      <div className="container">
         <div className="hero-centered-copy">
           <h1 className="enter" style={enterDelay(0)}>
             <span className="sr-only">The intelligent platform for modern recruiting teams.</span>
@@ -42,31 +54,20 @@ export function Hero() {
           </h1>
 
           <p className="hero-centered-lede enter" style={enterDelay(1)}>
-            Source candidates, automate screening, and make smarter hiring decisions — all from one
-            connected AI platform.
+            Connect talent, automate workflows, and make informed decisions faster with
+            TalentPool365.
           </p>
 
           <div className="hero-centered-ctas enter" style={enterDelay(2)}>
             <a className="btn btn-hero-solid" href="/get-started">
-              Get Started For Free
+              Start Free Trial
+              <Icon name="arrow-right" className="icon" />
             </a>
-            <a className="btn btn-hero-glass" href="#demo">
-              <Icon name="play" className="icon" />
-              Watch 30-sec tour
+            <a className="btn btn-hero-glass" href="#contact">
+              Book a Demo
+              <Icon name="arrow-right" className="icon" />
             </a>
           </div>
-        </div>
-
-        <div className="hero-media-frame enter" style={enterDelay(1, 100)}>
-          <img
-            className="hero-bg"
-            src="/assets/hero-aurevia-bg.jpg"
-            alt="TalentPool365 intelligent hiring workspace"
-            width={2048}
-            height={1142}
-            decoding="sync"
-            fetchPriority="high"
-          />
         </div>
       </div>
     </section>
