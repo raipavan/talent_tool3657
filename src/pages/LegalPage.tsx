@@ -6,7 +6,7 @@ const privacySections = [
   {
     num: '1',
     title: 'Introduction',
-    content: `TalentPool365 (“we”, “us”, “our”) provides an AI-powered recruitment platform designed to help organizations source, screen, assess, and hire candidates effectively. This Privacy Policy explains what personal data we collect, how we use it, who we share it with, and the choices you have.
+    content: `TalentPool365 (“we”, “us”, “our”) provides an Agentic AI-powered recruitment platform designed to help organizations source, screen, assess, and hire candidates effectively. This Privacy Policy explains what personal data we collect, how we use it, who we share it with, and the choices you have.
 
 This policy applies to:
 • Visitors to our website
@@ -67,8 +67,8 @@ For candidate data, employers are responsible for establishing their own lawful 
   },
   {
     num: '6',
-    title: 'AI and Automated Processing',
-    content: `TalentPool365 uses AI models to assist human recruiters in screening, matching, ranking, and evaluating candidates. Crucially:
+    title: 'Agentic AI and Automated Processing',
+    content: `TalentPool365 uses Agentic AI models to assist human recruiters in screening, matching, ranking, and evaluating candidates. Crucially:
 • Our features are built to support human decision-making, not replace it.
 • Final hiring, rejection, and offer decisions are made exclusively by human recruiters and hiring managers.
 • Candidate scores and rankings are fully explainable, detailing specific skill and experience matches.
@@ -148,7 +148,7 @@ const termsSections = [
   {
     num: '2',
     title: 'The Services',
-    content: `TalentPool365 grants Customer a non-exclusive, non-transferable subscription right to access our AI-powered recruitment platform, including sourcing, screening, assessments, video/voice interviews, recruiter workspaces, and integrations.`,
+    content: `TalentPool365 grants Customer a non-exclusive, non-transferable subscription right to access our Agentic AI-powered recruitment platform, including sourcing, screening, assessments, video/voice interviews, recruiter workspaces, and integrations.`,
   },
   {
     num: '3',
@@ -162,17 +162,17 @@ const termsSections = [
 • Use the platform exclusively for lawful recruitment and human resources purposes
 • Ensure a valid legal basis, and provide all necessary candidate notices and obtain consents prior to uploading resumes, recording interviews, or sending WhatsApp communications
 • Adhere to all applicable labor, anti-discrimination, and privacy statutes
-• Ensure all final hiring and rejection decisions are made by human recruiters following review of AI outputs.`,
+• Ensure all final hiring and rejection decisions are made by human recruiters following review of Agentic AI outputs.`,
   },
   {
     num: '5',
     title: 'Acceptable Use',
-    content: `Customer shall not reverse engineer, decompile, scrape, or probe platform security. Customer may not resell access, send unsolicited spam communications, or use platform outputs to construct a competing recruitment AI system.`,
+    content: `Customer shall not reverse engineer, decompile, scrape, or probe platform security. Customer may not resell access, send unsolicited spam communications, or use platform outputs to construct a competing recruitment Agentic AI system.`,
   },
   {
     num: '6',
-    title: 'AI Features and Limitations',
-    content: `AI matching scores, candidate rankings, skill assessments, and interview summaries are assistive evaluation tools. Customer acknowledges that AI outputs are recommendations that must be verified by qualified human professionals before making hiring determinations.`,
+    title: 'Agentic AI Features and Limitations',
+    content: `Agentic AI matching scores, candidate rankings, skill assessments, and interview summaries are assistive evaluation tools. Customer acknowledges that Agentic AI outputs are recommendations that must be verified by qualified human professionals before making hiring determinations.`,
   },
   {
     num: '7',
@@ -327,7 +327,7 @@ export function LegalPage() {
               <div className="legal-document-view">
                 <div className="document-intro-banner">
                   <span className="badge-tag">Data Protection Agreement</span>
-                  <h2>GDPR, DPDP & Responsible AI Framework</h2>
+                  <h2>GDPR, DPDP & Responsible Agentic AI Framework</h2>
                   <p className="doc-date">Technical & Organizational Measures (TOMs) Documentation</p>
                 </div>
 
@@ -345,7 +345,7 @@ export function LegalPage() {
                     <p>Instant PDF export containing all candidate records, test answers, scores, and recruiter feedback notes.</p>
                   </div>
                   <div className="card gdpr-box">
-                    <h3>Explainable Fair Hiring AI</h3>
+                    <h3>Explainable Fair Hiring Agentic AI</h3>
                     <p>Anti-bias algorithms that remove demographic proxies and provide transparent score breakdowns with mandatory human oversight.</p>
                   </div>
                 </div>

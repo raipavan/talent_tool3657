@@ -71,7 +71,7 @@ export function AboutPage() {
     <CompanyShell
       path="/company/about"
       label="About us"
-      title="AI does the busywork. *Recruiters decide.*"
+      title="Agentic AI does the busywork. *Recruiters decide.*"
       lede="TalentPool365 began as an internal tool in a recruitment agency. It is now the hiring platform for teams in 40 countries, and the rule it started with has not changed."
     >
       <About />
@@ -503,7 +503,7 @@ export function NewsPage() {
               </span>
               <h3>Press contact</h3>
               <p>
-                For interviews, data requests and comment on AI in hiring. We reply within one
+                For interviews, data requests and comment on Agentic AI in hiring. We reply within one
                 business day.
               </p>
               <a className="btn btn-primary" href="mailto:press@talentpool365.com">

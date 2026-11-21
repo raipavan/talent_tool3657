@@ -23,7 +23,7 @@ export function ProductsOverview() {
           { value: '68%', label: 'Faster time-to-hire' },
         ]}
         image="/assets/pages/hero-platform.jpg"
-        imageAlt="TalentPool365 AI recruitment platform overview illustration"
+        imageAlt="TalentPool365 Agentic AI recruitment platform overview illustration"
       />
 
       <SkLogoMarquee />

@@ -1199,6 +1199,99 @@ section[id], footer[id] { scroll-margin-top: calc(var(--header-h) + 12px); }
   transition: color .2s ease;
 }
 .footer-col a:hover { color: var(--color-accent); }
+
+/* US Address Card in Footer */
+.footer-brand-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 36px;
+  flex-wrap: wrap;
+  width: 100%;
+}
+.footer-address-card {
+  background: #FFFFFF;
+  border-radius: 14px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  max-width: 320px;
+  border: 1px solid #E2E8F0;
+  transition: transform .2s ease, box-shadow .2s ease;
+  margin-left: auto;
+}
+@media (max-width: 768px) {
+  .footer-address-card {
+    margin-left: 0;
+    max-width: 100%;
+  }
+}
+.footer-address-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.16);
+}
+.footer-address-card__body {
+  padding: 18px 18px 16px;
+}
+.footer-address-card__header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+.footer-address-card__flag {
+  display: block;
+  flex-shrink: 0;
+  border-radius: 3px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.18);
+}
+.footer-address-card__country {
+  font-family: var(--font-heading);
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: #0A3BA8;
+  letter-spacing: .02em;
+}
+.footer-address-card__text {
+  font-family: var(--font-body);
+  font-size: 0.9rem;
+  line-height: 1.5;
+  color: #334155 !important;
+  margin: 0 !important;
+}
+.footer-address-card__footer {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 18px;
+  background: #F8FAFC;
+  border-top: 1px solid #F1F5F9;
+  font-family: var(--font-body);
+  font-size: 0.85rem;
+  color: #475569;
+}
+.footer-address-card__phone-icon {
+  flex-shrink: 0;
+  color: #475569;
+}
+.footer-address-card__footer span {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+.footer-address-card__footer a {
+  color: #1E293B !important;
+  font-size: 0.85rem !important;
+  font-weight: 600 !important;
+  text-decoration: none !important;
+  transition: color .2s ease;
+}
+.footer-address-card__footer a:hover {
+  color: #0A3BA8 !important;
+  text-decoration: underline !important;
+}
 .footer-bottom {
   border-top: 1px solid rgba(255,255,255,.12);
   padding-block: 24px;

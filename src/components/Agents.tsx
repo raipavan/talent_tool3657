@@ -658,7 +658,7 @@ export function Agents() {
       <div className="agents-pin">
         <div className="container agents-head">
           <div>
-            <h2>{accent('Five *AI agents* work every requisition')}</h2>
+            <h2>{accent('Five *Agentic AI agents* work every requisition')}</h2>
             <p className="agents-sub">
               Each one finishes its part and hands the candidates on. Your recruiters step in where
               judgment matters.

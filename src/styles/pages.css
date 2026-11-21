@@ -748,8 +748,8 @@ main [id]:not(section) { scroll-margin-top: calc(var(--header-h) + 24px); }
   .main-nav .nav-mega-links a[aria-current="page"] { border-bottom-color: var(--color-secondary); }
   .main-nav .nav-mega-links a[aria-current="page"]::after { display: none; }
   /* ten product links: tighter rows so the panel fits a laptop screen */
-  .main-nav .nav-mega-links a { min-height: 0; padding-bottom: 20px; }
-  .main-nav .nav-menu ul.nav-mega-links { gap: 20px 30px; }
+  .main-nav .nav-mega-links a { min-height: 0; padding-bottom: 12px; }
+  .main-nav .nav-menu ul.nav-mega-links { gap: 14px 24px; }
 }
 @media (max-width: 1140px) {
   .main-nav .has-menu.is-open .nav-menu { max-height: 640px; }
@@ -884,7 +884,10 @@ a, button, input, select, textarea, summary { touch-action: manipulation; }
 .card:hover, .case-card:hover, .section--light .card:hover, .section--light .case-card:hover { transform: translateY(-3px); border-color: #91B4A2; background-image: none; box-shadow: 0 14px 35px -22px #345A51; }
 .card .icon-tile, .icon-tile { color: var(--color-secondary); background: #E4F1E9; }
 .on-dark .icon-tile { color: var(--color-accent); background: #345F52; }
-.card:hover .icon-tile, .section--light .card:hover .icon-tile { color: var(--color-secondary); }
+.card:hover .icon-tile, .section--light .card:hover .icon-tile {
+  background: #D5E8DD;
+  color: var(--color-secondary);
+}
 .ticks li::before, .section--light .ticks li::before { background: var(--color-secondary); }
 .ticks li::after, .section--light .ticks li::after { border-color: white; }
 .on-dark .ticks li::before { background: var(--color-accent); }

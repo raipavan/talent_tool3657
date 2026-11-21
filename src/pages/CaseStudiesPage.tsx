@@ -31,11 +31,11 @@ const caseStudiesData: CaseStudyStory[] = [
     title: 'How Apex Global BPO filled 200 customer support agent roles in 3 weeks with automated voice screening',
     challenge: 'Apex received over 8,500 applications for multi-lingual contact center agent positions across two cities. The 4-person recruiting team was overwhelmed by manual resume screening and telephone screening rounds, leading to a 38-day average hiring cycle and severe candidate drop-off before day one.',
     solution: [
-      'Deployed bulk AI resume parsing and keyword-agnostic skill extraction to process all 8,500+ resumes within 24 hours.',
-      'Configured asynchronous voice-based AI interviews to assess spoken fluency, active listening, and tone 24/7 without recruiter calls.',
+      'Deployed bulk Agentic AI resume parsing and keyword-agnostic skill extraction to process all 8,500+ resumes within 24 hours.',
+      'Configured asynchronous voice-based Agentic AI interviews to assess spoken fluency, active listening, and tone 24/7 without recruiter calls.',
       'Automated WhatsApp follow-up sequences and instant slot self-scheduling for final manager panel interviews.',
     ],
-    featuresUsed: ['AI Candidate Screening', 'Voice-Based Interviews', 'WhatsApp Integration', 'Smart Shortlisting'],
+    featuresUsed: ['Agentic AI Candidate Screening', 'Voice-Based Interviews', 'WhatsApp Integration', 'Smart Shortlisting'],
     results: [
       { stat: '72%', label: 'Reduction in time-to-hire' },
       { stat: '8,500+', label: 'Candidates screened automatically' },
@@ -61,14 +61,14 @@ const caseStudiesData: CaseStudyStory[] = [
     industry: 'IT & Technology',
     size: 'Mid-Market',
     useCase: 'Contract Staffing',
-    title: 'How NovaTech slashed engineering hiring cycles from 42 days to 12 days using live AI coding evaluations',
+    title: 'How NovaTech slashed engineering hiring cycles from 42 days to 12 days using live Agentic AI coding evaluations',
     challenge: 'NovaTech was scaling its cloud architecture and DevOps practice for multi-cloud enterprise clients. Senior engineers were spending 15+ hours weekly evaluating technical tests and conducting preliminary technical phone screens, creating bottlenecks in delivery roadmap.',
     solution: [
-      'Implemented semantic AI candidate discovery across dormant resume archives and developer networks.',
+      'Implemented semantic Agentic AI candidate discovery across dormant resume archives and developer networks.',
       'Replaced take-home assignments with automated live coding interviews featuring real-time test cases and proctoring.',
       'Established transparent scorecards comparing code cleanliness, algorithmic efficiency, and problem-solving reasoning side by side.',
     ],
-    featuresUsed: ['AI Candidate Discovery', 'Coding Interviews', 'Technical Assessments', 'Recruiter Workspace'],
+    featuresUsed: ['Agentic AI Candidate Discovery', 'Coding Interviews', 'Technical Assessments', 'Recruiter Workspace'],
     results: [
       { stat: '68%', label: 'Faster tech offer releases' },
       { stat: '15 hrs', label: 'Saved per senior engineer/week' },
@@ -128,11 +128,11 @@ const caseStudiesData: CaseStudyStory[] = [
     title: 'How Vanguard screened 12,000 university applicants for wealth management with zero human bias',
     challenge: 'Vanguard’s nationwide campus recruitment drive for quantitative analysts and wealth advisors attracted over 12,000 resumes. Reviewers were biased toward familiar university brand names, missing extraordinary talent from non-target institutions.',
     solution: [
-      'Implemented blind AI screening that stripped university names, photos, and demographic proxies, focusing strictly on competencies.',
-      'Conducted randomized cognitive reasoning and financial aptitude assessments with AI-proctored verification.',
+      'Implemented blind Agentic AI screening that stripped university names, photos, and demographic proxies, focusing strictly on competencies.',
+      'Conducted randomized cognitive reasoning and financial aptitude assessments with Agentic AI-proctored verification.',
       'Automated multi-evaluator approval chains and structured scorecards for final executive panel rounds.',
     ],
-    featuresUsed: ['Cognitive Tests', 'Fair Hiring AI', 'Candidate Ranking', 'Audit Trails'],
+    featuresUsed: ['Cognitive Tests', 'Fair Hiring Agentic AI', 'Candidate Ranking', 'Audit Trails'],
     results: [
       { stat: '12,000+', label: 'Campus applicants assessed' },
       { stat: '3.2×', label: 'Increase in diversity representation' },
@@ -145,7 +145,7 @@ const caseStudiesData: CaseStudyStory[] = [
       'Offer-to-joining ratio reached a historic high of 93%',
     ],
     quote: {
-      text: 'The explainable AI scorecards gave our executive committee complete confidence. Every candidate was ranked on genuine mathematical and behavioral aptitude, creating our most diverse and high-performing cohort to date.',
+      text: 'The explainable Agentic AI scorecards gave our executive committee complete confidence. Every candidate was ranked on genuine mathematical and behavioral aptitude, creating our most diverse and high-performing cohort to date.',
       author: 'Alistair Finch',
       role: 'Global Head of Early Careers, Vanguard Capital',
     },
@@ -164,7 +164,7 @@ const caseStudiesData: CaseStudyStory[] = [
       'Chatbot collected basic availability, customer service situational choices, and language preferences in 4 minutes.',
       'Approved candidates picked available 15-minute in-store interview slots directly from store manager Google Calendars.',
     ],
-    featuresUsed: ['AI Chatbot', 'WhatsApp Integration', 'Interview Scheduling', 'Talent Pool Management'],
+    featuresUsed: ['Agentic AI Chatbot', 'WhatsApp Integration', 'Interview Scheduling', 'Talent Pool Management'],
     results: [
       { stat: '1,200', label: 'Seasonal hires completed' },
       { stat: '4 mins', label: 'Average candidate application time' },
@@ -332,7 +332,7 @@ export function CaseStudiesPage() {
                 <div className="featured-features-used">
                   <strong>Features used:</strong>
                   <div className="tag-chips">
-                    <span>AI Candidate Screening</span>
+                    <span>Agentic AI Candidate Screening</span>
                     <span>Voice-Based Interviews</span>
                     <span>WhatsApp Integration</span>
                     <span>Smart Shortlisting</span>
@@ -677,7 +677,7 @@ export function CaseStudiesPage() {
             <article className="sk-card" style={{ textAlign: 'center', alignItems: 'center' }}>
               <span className="sk-pill-tag" style={{ marginBottom: 4 }}>G2 Leader</span>
               <h3>4.8 / 5 Rating</h3>
-              <p>Top-rated Enterprise AI Recruiting &amp; Talent Intelligence suite.</p>
+              <p>Top-rated Enterprise Agentic AI Recruiting &amp; Talent Intelligence suite.</p>
             </article>
             <article className="sk-card" style={{ textAlign: 'center', alignItems: 'center' }}>
               <span className="sk-pill-tag" style={{ marginBottom: 4 }}>TrustRadius</span>
@@ -687,7 +687,7 @@ export function CaseStudiesPage() {
             <article className="sk-card" style={{ textAlign: 'center', alignItems: 'center' }}>
               <span className="sk-pill-tag" style={{ marginBottom: 4 }}>HR Executive</span>
               <h3>Top HR Product</h3>
-              <p>Awarded for explainable, fair-hiring AI evaluation rubrics.</p>
+              <p>Awarded for explainable, fair-hiring Agentic AI evaluation rubrics.</p>
             </article>
             <article className="sk-card" style={{ textAlign: 'center', alignItems: 'center' }}>
               <span className="sk-pill-tag" style={{ marginBottom: 4 }}>SOC 2 Type II</span>

@@ -175,9 +175,9 @@ export function Header() {
                   </div>
 
                   {hasMenu ? (
-                    <div className="nav-menu" id={`nav-menu-${item.id}`} inert={!isOpen}>
+                    <div className={`nav-menu nav-menu--${item.id}`} id={`nav-menu-${item.id}`} inert={!isOpen}>
                       <div className="nav-menu-panel">
-                        <div className="nav-mega">
+                        <div className={`nav-mega nav-mega--${item.id}${(item.links?.length ?? 0) <= 3 ? ' nav-mega--compact' : ''}`}>
                           {item.intro?.title ? (
                             <div className="nav-mega-intro">
                               <p className="nav-mega-title">{item.intro.title}</p>

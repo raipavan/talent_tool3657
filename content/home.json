@@ -116,7 +116,7 @@
       "icon": "search",
       "href": "/products/talent-sourcing",
       "title": "Talent Sourcing",
-      "body": "AI candidate discovery across your ATS, job boards, LinkedIn and referral pools — in one search.",
+      "body": "Agentic AI candidate discovery across your ATS, job boards, LinkedIn and referral pools — in one search.",
       "points": [
         "Semantic resume database search",
         "Job board & social sourcing",
@@ -130,14 +130,14 @@
       "body": "Every application parsed, skills extracted and ranked — with the reasons shown, not hidden.",
       "points": [
         "Resume parsing & skill extraction",
-        "AI matching and ranking",
+        "Agentic AI matching and ranking",
         "Smart shortlisting"
       ]
     },
     {
       "icon": "clipboard-check",
       "href": "/products/ai-assessments",
-      "title": "AI Assessments",
+      "title": "Agentic AI Assessments",
       "body": "Calibrated technical, aptitude and cognitive tests that grade themselves against your bar.",
       "points": [
         "Technical & coding tests",
@@ -148,10 +148,10 @@
     {
       "icon": "video",
       "href": "/products/ai-interviews",
-      "title": "AI Interviews",
+      "title": "Agentic AI Interviews",
       "body": "Structured video, voice and coding interviews, proctored and scored on a consistent rubric.",
       "points": [
-        "Conversational AI interviews",
+        "Conversational Agentic AI interviews",
         "Proctoring & monitoring",
         "Interview analytics"
       ]
@@ -180,9 +180,9 @@
     }
   ],
   "interviewSplit": {
-    "eyebrow": "Inside AI Interviews",
+    "eyebrow": "Inside Agentic AI Interviews",
     "title": "Interviews that *grade themselves* — recruiters make the call",
-    "body": "Every interview is transcribed, time-stamped and scored against the same rubric your panel agreed on before the req opened. Recruiters review the evidence in minutes and decide — the AI never does.",
+    "body": "Every interview is transcribed, time-stamped and scored against the same rubric your panel agreed on before the req opened. Recruiters review the evidence in minutes and decide — the Agentic AI never does.",
     "points": [
       "Transcript, waveform and score in one view",
       "Skills radar calibrated to your role profile",
@@ -243,10 +243,10 @@
   "steps": [
     {
       "title": "Create the requisition",
-      "body": "Describe the role in plain language. AI drafts the spec, success profile and salary band for your approval."
+      "body": "Describe the role in plain language. Agentic AI drafts the spec, success profile and salary band for your approval."
     },
     {
-      "title": "AI talent sourcing",
+      "title": "Agentic AI talent sourcing",
       "body": "The platform searches 30+ channels plus your existing database, and rebuilds warm pools you've already paid to build."
     },
     {
@@ -254,7 +254,7 @@
       "body": "Resumes are parsed, skills extracted and candidates ranked — every score comes with the reasons attached."
     },
     {
-      "title": "Assessments & AI interviews",
+      "title": "Assessments & Agentic AI interviews",
       "body": "Calibrated tests and structured interviews run around the clock, proctored and scored on your rubric."
     },
     {
@@ -406,7 +406,7 @@
       "stat": "900",
       "statLabel": "engineers screened a quarter by two recruiters",
       "challenge": "Two recruiters faced 900 engineering applicants a quarter, and the interview panel could not agree on one scoring rubric.",
-      "approach": "One rubric agreed before each role opens, with coding assessments and AI interviews scored against it.",
+      "approach": "One rubric agreed before each role opens, with coding assessments and Agentic AI interviews scored against it.",
       "results": [
         "Every score traceable to the rubric",
         "Panel time spent on finalists only",
@@ -440,7 +440,7 @@
     },
     {
       "year": "2022",
-      "title": "AI Interviews launch",
+      "title": "Agentic AI Interviews launch",
       "body": "with human review built into the rejection path."
     },
     {
@@ -465,7 +465,7 @@
     },
     {
       "title": "Humans stay in the loop",
-      "body": "AI shortlists; people decide. No candidate is ever auto-rejected by a model."
+      "body": "Agentic AI shortlists; people decide. No candidate is ever auto-rejected by a model."
     },
     {
       "title": "Security is table stakes",
@@ -512,7 +512,7 @@
       "answer": "No. It sits on top of the ATS you already run. Candidates, stages and offers stay in your system of record; the platform handles sourcing, screening and interview evidence, then syncs both ways."
     },
     {
-      "question": "How do you keep the AI from making biased decisions?",
+      "question": "How do you keep the Agentic AI from making biased decisions?",
       "answer": "Every score is tied to a rubric your team defined before the role opened. Models are bias-audited quarterly, and no candidate is auto-rejected — a recruiter reviews the evidence and makes the call."
     },
     {

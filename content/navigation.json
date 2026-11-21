@@ -31,12 +31,12 @@
           "desc": "Every application parsed, ranked and shortlisted, with the reasons shown."
         },
         {
-          "label": "AI Assessments",
+          "label": "Agentic AI Assessments",
           "href": "/products/ai-assessments",
           "desc": "Technical, aptitude and cognitive tests that grade themselves against your bar."
         },
         {
-          "label": "AI Interviews",
+          "label": "Agentic AI Interviews",
           "href": "/products/ai-interviews",
           "desc": "Structured video, voice and coding interviews scored on a consistent rubric."
         },
@@ -171,11 +171,11 @@
           "href": "/products/candidate-screening"
         },
         {
-          "label": "AI Assessments",
+          "label": "Agentic AI Assessments",
           "href": "/products/ai-assessments"
         },
         {
-          "label": "AI Interviews",
+          "label": "Agentic AI Interviews",
           "href": "/products/ai-interviews"
         },
         {
@@ -235,7 +235,7 @@
       "title": "Resources",
       "links": [
         { "label": "Blog", "href": "/blog" },
-        { "label": "AI Recruitment Guides", "href": "/resources#guides" },
+        { "label": "Agentic AI Recruitment Guides", "href": "/resources#guides" },
         { "label": "White Papers", "href": "/resources#white-papers" },
         { "label": "Industry Reports", "href": "/resources#industry-reports" },
         { "label": "E-books", "href": "/resources#ebooks" },
@@ -296,7 +296,7 @@
         { "label": "Terms of Service", "href": "/legal#terms-of-service" },
         { "label": "Cookies Policy", "href": "/legal#cookies-policy" },
         { "label": "GDPR Compliance", "href": "/legal#gdpr-compliance" },
-        { "label": "Responsible AI Policy", "href": "/legal#responsible-ai" },
+        { "label": "Responsible Agentic AI Policy", "href": "/legal#responsible-ai" },
         { "label": "Data Processing Agreement", "href": "/legal#data-processing-agreement" }
       ]
     },

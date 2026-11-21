@@ -12,9 +12,9 @@ const glossary = [
   ['ATS', 'Applicant tracking system: the core software used by HR to post jobs, store candidate resumes, and manage recruitment pipeline stages.'],
   ['Structured interview', 'An interview format using standardized, job-relevant questions scored against a consistent pre-defined evaluation rubric.'],
   ['Talent pool', 'A curated, categorized database of pre-qualified active and passive candidates available for current and future hiring needs.'],
-  ['Semantic matching', 'AI-driven candidate matching that understands the contextual relationships between skills, accomplishments, and requirements rather than relying on exact keyword matching.'],
+  ['Semantic matching', 'Agentic AI-driven candidate matching that understands the contextual relationships between skills, accomplishments, and requirements rather than relying on exact keyword matching.'],
   ['Time-to-hire', 'The elapsed duration between a job requisition opening or initial applicant submission and the accepted offer letter.'],
-  ['Fair Hiring AI', 'Explainable AI scoring algorithms designed with strict anti-bias guardrails, excluding protected demographic attributes and requiring human oversight.'],
+  ['Fair Hiring Agentic AI', 'Explainable Agentic AI scoring algorithms designed with strict anti-bias guardrails, excluding protected demographic attributes and requiring human oversight.'],
   ['Cognitive assessment', 'Objective evaluation measuring analytical reasoning, problem-solving speed, attention to detail, and pattern recognition.'],
   ['Proctoring', 'Automated integrity monitoring during online tests and interviews, tracking tab switches, secondary screens, and identity verification.'],
 ];
@@ -34,18 +34,18 @@ export interface BlogPost {
 export const documentBlogPosts: BlogPost[] = [
   {
     id: 'ai-changing-recruitment',
-    category: 'AI in Recruitment',
-    title: 'How AI is changing recruitment, and what recruiters should do about it',
-    tagline: 'A practical look at where AI helps in hiring, where human judgment still matters, and how to start without disrupting your process.',
+    category: 'Agentic AI in Recruitment',
+    title: 'How Agentic AI is changing recruitment, and what recruiters should do about it',
+    tagline: 'A practical look at where Agentic AI helps in hiring, where human judgment still matters, and how to start without disrupting your process.',
     readTime: '6 min read',
     date: 'November 2026',
     author: 'Editorial Team · TalentPool365',
-    summary: 'A balanced assessment of modern AI in talent acquisition: why semantic understanding outperforms keyword filtering, how to maintain human judgment at critical decision moments, and where automation provides immediate return on investment.',
+    summary: 'A balanced assessment of modern Agentic AI in talent acquisition: why semantic understanding outperforms keyword filtering, how to maintain human judgment at critical decision moments, and where automation provides immediate return on investment.',
     paragraphs: [
       'The modern recruiting desk has reached an unsustainable breaking point. With one-click job applications and remote job boards, an average engineering or corporate requisition attracts hundreds of applications, over 70% of which do not meet foundational job criteria. Recruiters spend an estimated 18 to 22 hours per week simply sifting through PDFs and copying candidate contact details into spreadsheets.',
-      'Artificial intelligence in recruitment is often misunderstood as an automated decision-maker. In reality, responsible AI acts as an executive intelligence assistant. It performs semantic extraction—understanding that a candidate who led a React-to-Next.js migration possesses senior frontend engineering capabilities even if the words "State Management Architecture" were not explicitly copy-pasted into their resume skills section.',
-      'Crucially, ethical hiring systems must enforce human-in-the-loop oversight. AI should calculate match scores, surface evidence, flag missing prerequisites, and conduct preliminary structured screening interviews. However, the decision of whether to advance, offer, or disqualify a human candidate must always rest with human recruiters and hiring managers who possess organizational empathy.',
-      'To implement AI safely without disrupting current operations, talent leaders should start with repeatable administrative burdens: resume parsing, initial proctored technical evaluations, and automated WhatsApp follow-ups. Measuring time-in-stage reductions against candidate satisfaction surveys creates a clear baseline for further automation.',
+      'Artificial intelligence in recruitment is often misunderstood as an automated decision-maker. In reality, responsible Agentic AI acts as an executive intelligence assistant. It performs semantic extraction—understanding that a candidate who led a React-to-Next.js migration possesses senior frontend engineering capabilities even if the words "State Management Architecture" were not explicitly copy-pasted into their resume skills section.',
+      'Crucially, ethical hiring systems must enforce human-in-the-loop oversight. Agentic AI should calculate match scores, surface evidence, flag missing prerequisites, and conduct preliminary structured screening interviews. However, the decision of whether to advance, offer, or disqualify a human candidate must always rest with human recruiters and hiring managers who possess organizational empathy.',
+      'To implement Agentic AI safely without disrupting current operations, talent leaders should start with repeatable administrative burdens: resume parsing, initial proctored technical evaluations, and automated WhatsApp follow-ups. Measuring time-in-stage reductions against candidate satisfaction surveys creates a clear baseline for further automation.',
     ],
   },
   {
@@ -96,14 +96,14 @@ export const documentBlogPosts: BlogPost[] = [
   {
     id: 'ai-interviews-experience',
     category: 'Interviews & Assessments',
-    title: 'AI interviews: what candidates experience and how to make it fair',
+    title: 'Agentic AI interviews: what candidates experience and how to make it fair',
     tagline: 'Tips for designing automated interviews that candidates respect.',
     readTime: '6 min read',
     date: 'September 2026',
     author: 'Candidate Experience Lab · TalentPool365',
     summary: 'How to design asynchronous video, voice, and coding interviews that respect candidate schedules, reduce test anxiety, and ensure fair scoring.',
     paragraphs: [
-      'Asynchronous and AI-assisted interviews have exploded in adoption, but candidate perception varies dramatically based on implementation. When an interview feels like an interrogation by an opaque black box, completion rates plummet. When it is designed with transparency and flexibility, candidates love the freedom to interview on their own schedule.',
+      'Asynchronous and Agentic AI-assisted interviews have exploded in adoption, but candidate perception varies dramatically based on implementation. When an interview feels like an interrogation by an opaque black box, completion rates plummet. When it is designed with transparency and flexibility, candidates love the freedom to interview on their own schedule.',
       'Fairness begins with transparent expectations. Before candidates begin recording, they should receive a clear walkthrough of the competencies being tested, the duration of each answer, whether retakes are permitted, and how their responses will be evaluated. Explaining upfront that human recruiters review all recordings eliminates distrust.',
       'Accessibility is paramount. Providing voice-first alternatives for low-bandwidth environments, accommodating sensory requirements, and conducting ongoing audits for linguistic or dialect bias ensures that automated interview systems expand access rather than erecting new barriers.',
     ],
@@ -120,7 +120,7 @@ export const documentBlogPosts: BlogPost[] = [
     paragraphs: [
       'Many recruitment teams track superficial numbers such as "Total Resumes Received" or "Interviews Scheduled." While easy to report, these vanity metrics say very little about the health, speed, or quality of the talent acquisition pipeline.',
       'A mature talent team focuses on conversion velocity: measuring median days spent in each stage (Sourcing to Screened, Screened to Assessed, Assessed to Offer). Identifying which specific handoff creates delays—frequently the gap between shortlist delivery and hiring manager interview scheduling—pinpoints where process improvements yield exponential returns.',
-      'Equally vital is Source Effectiveness. By measuring quality-of-hire and offer acceptance rates grouped by acquisition channel, organizations frequently discover that expensive job boards produce high volume but low retention, whereas referral pools and direct AI candidate discovery deliver superior longevity.',
+      'Equally vital is Source Effectiveness. By measuring quality-of-hire and offer acceptance rates grouped by acquisition channel, organizations frequently discover that expensive job boards produce high volume but low retention, whereas referral pools and direct Agentic AI candidate discovery deliver superior longevity.',
     ],
   },
   {
@@ -167,7 +167,7 @@ export function ResourcesPage() {
         eyebrow="RESOURCES"
         eyebrowIcon="file-check"
         title="TalentPool365 Resource Hub"
-        subtitle="Practical AI recruitment playbooks, evaluation frameworks, checklists, and plain-language guides — open to read with zero gated forms."
+        subtitle="Practical Agentic AI recruitment playbooks, evaluation frameworks, checklists, and plain-language guides — open to read with zero gated forms."
       >
         <div className="sk-hero-search-wrap">
           <span className="sk-hero-search-icon" aria-hidden="true">
@@ -257,7 +257,7 @@ export function ResourcesPage() {
             <span className="sk-pill-tag">PRODUCT WALKTHROUGH</span>
             <h2 className="sk-serif-h2">See the platform. Follow the work.</h2>
             <p className="sk-section-sub">
-              A guided walkthrough of the TalentPool365 workflow: from automated AI sourcing and semantic
+              A guided walkthrough of the TalentPool365 workflow: from automated Agentic AI sourcing and semantic
               screening to proctored assessments, video interviews, and digital offers.
             </p>
             <a className="sk-card-link" style={{ marginTop: 14 }} href="/how-it-works">
@@ -275,7 +275,7 @@ export function ResourcesPage() {
           <SectionHead
             eyebrow="Terminology"
             title="Hiring terms, *in plain language*"
-            body="Clear explanations of modern talent acquisition and recruitment AI concepts."
+            body="Clear explanations of modern talent acquisition and recruitment Agentic AI concepts."
           />
           <dl className="glossary-grid">
             {glossary.map(([term, meaning]) => (
@@ -302,7 +302,7 @@ export function BlogPage() {
     'All',
     'Talent Sourcing',
     'Candidate Screening',
-    'AI in Recruitment',
+    'Agentic AI in Recruitment',
     'Interviews & Assessments',
     'Candidate Experience',
     'Hiring Strategy',
@@ -327,7 +327,7 @@ export function BlogPage() {
         eyebrow="RECRUITMENT BLOG"
         eyebrowIcon="megaphone"
         title="Insights, guides and ideas for smarter hiring"
-        subtitle="Practical advice for recruiters, HR leaders, and hiring managers. Learn how to source better, screen faster, interview fairly, and make AI work for your team."
+        subtitle="Practical advice for recruiters, HR leaders, and hiring managers. Learn how to source better, screen faster, interview fairly, and make Agentic AI work for your team."
       >
         <div className="sk-hero-search-wrap">
           <span className="sk-hero-search-icon" aria-hidden="true">

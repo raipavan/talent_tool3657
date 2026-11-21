@@ -35,12 +35,12 @@ const quoteFields: LeadField[] = [
 ];
 
 const comparisonFeatures = [
-  { feature: 'AI Candidate Discovery', starter: '✓', pro: '✓', ent: '✓' },
+  { feature: 'Agentic AI Candidate Discovery', starter: '✓', pro: '✓', ent: '✓' },
   { feature: 'Resume Database Search', starter: '✓', pro: '✓', ent: '✓' },
   { feature: 'Resume Parsing & Matching', starter: '✓', pro: '✓', ent: '✓' },
   { feature: 'Candidate Ranking & Shortlisting', starter: 'Basic', pro: 'Advanced', ent: 'Advanced' },
-  { feature: 'AI Assessments (Tech, Aptitude, Cognitive)', starter: 'Basic', pro: 'Full suite', ent: 'Full suite' },
-  { feature: 'AI Interviews (Video, Voice, Coding)', starter: 'Limited', pro: '✓ (Unlimited)', ent: '✓ (Unlimited)' },
+  { feature: 'Agentic AI Assessments (Tech, Aptitude, Cognitive)', starter: 'Basic', pro: 'Full suite', ent: 'Full suite' },
+  { feature: 'Agentic AI Interviews (Video, Voice, Coding)', starter: 'Limited', pro: '✓ (Unlimited)', ent: '✓ (Unlimited)' },
   { feature: 'Proctoring & Anti-Cheat Monitoring', starter: '–', pro: '✓', ent: '✓' },
   { feature: 'Recruiter Workspace & Collaboration', starter: 'Basic', pro: '✓', ent: '✓' },
   { feature: 'Approval Workflows & Audit Chains', starter: '–', pro: '✓', ent: 'Custom multi-tier' },
@@ -60,7 +60,7 @@ const faqs = [
   },
   {
     q: 'Is there a free trial?',
-    a: 'Yes! You can explore TalentPool365 on a 14-day free trial without a credit card. Test AI candidate discovery, resume parsing, and automated interviews on your own roles.',
+    a: 'Yes! You can explore TalentPool365 on a 14-day free trial without a credit card. Test Agentic AI candidate discovery, resume parsing, and automated interviews on your own roles.',
   },
   {
     q: 'Do you offer discounts for annual billing?',
@@ -94,7 +94,7 @@ export function PricingPage() {
           <div className="sk-promo-banner" style={{ marginBottom: 44 }}>
             <div>
               <h2>Try TalentPool365 free for 14 days</h2>
-              <p>Run AI sourcing, semantic resume screening, and automated interviews on a live role. No credit card required.</p>
+              <p>Run Agentic AI sourcing, semantic resume screening, and automated interviews on a live role. No credit card required.</p>
             </div>
             <a className="sk-btn-orange" href="/get-started#start-free-trial">
               Get free trial →
@@ -132,8 +132,8 @@ export function PricingPage() {
               <div className="plan-body">
                 <h4>Everything you need to move from spreadsheets to smarter hiring:</h4>
                 <ul className="ticks">
-                  <li>AI candidate discovery and resume database search</li>
-                  <li>Resume parsing and AI candidate matching</li>
+                  <li>Agentic AI candidate discovery and resume database search</li>
+                  <li>Resume parsing and Agentic AI candidate matching</li>
                   <li>Basic assessments and automated interviews</li>
                   <li>Candidate pipeline and email automation</li>
                   <li>Interview scheduling calendar sync</li>
@@ -164,9 +164,9 @@ export function PricingPage() {
               <div className="plan-body">
                 <h4>Everything in Starter, plus more automation &amp; insight:</h4>
                 <ul className="ticks">
-                  <li>Advanced AI screening, ranking and smart shortlisting</li>
-                  <li>Full AI assessments: technical, aptitude, cognitive and behavioral</li>
-                  <li>AI video, voice and coding interviews with proctoring</li>
+                  <li>Advanced Agentic AI screening, ranking and smart shortlisting</li>
+                  <li>Full Agentic AI assessments: technical, aptitude, cognitive and behavioral</li>
+                  <li>Agentic AI video, voice and coding interviews with proctoring</li>
                   <li>WhatsApp integration and automated follow-ups</li>
                   <li>Team collaboration, feedback scorecards and approval workflows</li>
                   <li>Analytics and reporting KPI dashboards</li>

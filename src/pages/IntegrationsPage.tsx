@@ -19,7 +19,7 @@ const integrationsList: IntegrationItem[] = [
     name: 'Workday',
     category: 'ATS',
     mark: 'W',
-    tagline: 'Bring AI-powered hiring into your Workday environment.',
+    tagline: 'Bring Agentic AI-powered hiring into your Workday environment.',
     description: 'Add intelligent sourcing, screening and interviews to Workday Recruiting without disrupting enterprise HR processes.',
     features: [
       'Sync candidate profiles and application status',
@@ -32,11 +32,11 @@ const integrationsList: IntegrationItem[] = [
     name: 'SAP SuccessFactors',
     category: 'ATS',
     mark: 'SAP',
-    tagline: 'Extend SuccessFactors with AI screening and engagement.',
+    tagline: 'Extend SuccessFactors with Agentic AI screening and engagement.',
     description: 'Enhance SAP SuccessFactors Recruiting with automated candidate evaluation, while your HR data stays in one place.',
     features: [
       'Sync jobs, candidates and hiring stages',
-      'Add AI match scores and ranked shortlists to profiles',
+      'Add Agentic AI match scores and ranked shortlists to profiles',
       'Move shortlisted candidates into your existing workflow',
       'Maintain consistent records across HR systems',
     ],
@@ -58,11 +58,11 @@ const integrationsList: IntegrationItem[] = [
     name: 'Greenhouse',
     category: 'ATS',
     mark: 'GH',
-    tagline: 'Supercharge Greenhouse with AI-driven candidate insights.',
+    tagline: 'Supercharge Greenhouse with Agentic AI-driven candidate insights.',
     description: 'Keep your structured Greenhouse hiring process and add automated sourcing, screening and assessments.',
     features: [
       'Import jobs and candidates from Greenhouse',
-      'Send AI scores, interview summaries and scorecards back',
+      'Send Agentic AI scores, interview summaries and scorecards back',
       'Automate scheduling and candidate follow-ups',
       'Maintain your existing pipeline stages',
     ],
@@ -71,8 +71,8 @@ const integrationsList: IntegrationItem[] = [
     name: 'Lever',
     category: 'ATS',
     mark: 'L',
-    tagline: 'Bring automation and AI evaluation to Lever.',
-    description: 'Combine Lever’s relationship-focused recruiting with TalentPool365’s AI sourcing and screening.',
+    tagline: 'Bring automation and Agentic AI evaluation to Lever.',
+    description: 'Combine Lever’s relationship-focused recruiting with TalentPool365’s Agentic AI sourcing and screening.',
     features: [
       'Sync candidate profiles, stages and notes',
       'Surface ranked shortlists inside your Lever pipeline',
@@ -260,7 +260,7 @@ export function IntegrationsPage() {
       <SkHero
         eyebrow="ECOSYSTEM & API"
         eyebrowIcon="layers"
-        title="Recruiting AI that works inside your stack"
+        title="Recruiting Agentic AI that works inside your stack"
         subtitle="You should not have to replace your ATS or HRMS to hire smarter. TalentPool365 syncs candidate profiles, scores, and statuses directly inside the tools your team already uses."
         primaryCta={{ label: 'Book a demo →', href: '/get-started#book-meeting' }}
         secondaryCta={{ label: 'See all integrations ↓', href: '#directory' }}
@@ -287,7 +287,7 @@ export function IntegrationsPage() {
           <SectionHead
             eyebrow="Zero Workflow Disruption"
             title="Why connect your *existing hiring tools?*"
-            body="TalentPool365 doesn't demand you rip and replace your tech stack. It adds an intelligent AI layer to your current software."
+            body="TalentPool365 doesn't demand you rip and replace your tech stack. It adds an intelligent Agentic AI layer to your current software."
           />
 
           <div className="grid grid--4">
@@ -312,7 +312,7 @@ export function IntegrationsPage() {
             <Reveal as="div" className="card value-card" delay={3}>
               <div className="icon-tile"><Icon name="chart" /></div>
               <h3>Complete Visibility</h3>
-              <p>Assessment scores, AI transcripts, and interview shortlists appear right where your recruiters already review candidates.</p>
+              <p>Assessment scores, Agentic AI transcripts, and interview shortlists appear right where your recruiters already review candidates.</p>
             </Reveal>
           </div>
         </div>

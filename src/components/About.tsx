@@ -19,7 +19,7 @@ export function About() {
             </p>
             <p>
               Today the platform processes over two million interviews a year across 40 countries.
-              The rule from day one still stands: AI does the busywork, recruiters make the
+              The rule from day one still stands: Agentic AI does the busywork, recruiters make the
               decisions, and every score can be explained to a candidate, a client or a regulator.
             </p>
             <a className="btn btn-dark" href="/company/careers">

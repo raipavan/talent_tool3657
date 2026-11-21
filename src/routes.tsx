@@ -31,7 +31,7 @@ export interface Route {
   render: () => ReactElement;
 }
 
-const HOME_TITLE = 'TalentPool365 — AI Recruitment Platform | Source, Screen & Hire Faster';
+const HOME_TITLE = 'TalentPool365 — Agentic AI Recruitment Platform | Source, Screen & Hire Faster';
 
 /* Each sitemap destination has a route and page metadata. */
 export const routes: Record<string, Route> = {
@@ -68,7 +68,7 @@ export const routes: Record<string, Route> = {
   },
   '/how-it-works': {
     title: 'How It Works',
-    description: 'Follow nine hiring steps, from a job requisition and AI sourcing to recruiter review and onboarding.',
+    description: 'Follow nine hiring steps, from a job requisition and Agentic AI sourcing to recruiter review and onboarding.',
     render: () => <HowItWorksPage />,
   },
   '/case-studies': {
@@ -83,12 +83,12 @@ export const routes: Record<string, Route> = {
   },
   '/resources': {
     title: 'Recruitment Resources',
-    description: 'Read practical AI recruitment guides, planning briefs, checklists and a plain-language hiring glossary.',
+    description: 'Read practical Agentic AI recruitment guides, planning briefs, checklists and a plain-language hiring glossary.',
     render: () => <ResourcesPage />,
   },
   '/blog': {
     title: 'Recruitment Blog',
-    description: 'Ideas for more considered hiring decisions, clearer candidate communication and responsible AI.',
+    description: 'Ideas for more considered hiring decisions, clearer candidate communication and responsible Agentic AI.',
     render: () => <BlogPage />,
   },
   '/support': {
@@ -98,7 +98,7 @@ export const routes: Record<string, Route> = {
   },
   '/legal': {
     title: 'Legal & Trust',
-    description: 'Request approved privacy, terms, data processing and responsible AI documentation.',
+    description: 'Request approved privacy, terms, data processing and responsible Agentic AI documentation.',
     render: () => <LegalPage />,
   },
   '/get-started': {
