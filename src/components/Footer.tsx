@@ -1,4 +1,5 @@
 import { footerColumns as staticFooterColumns, footerLegalLinks as staticFooterLegalLinks, type FooterColumn, type NavLink } from '../data/content';
+import { navigate } from '../lib/router';
 import { useNavigationContent } from '../sanity/SanityProvider';
 
 export function Footer() {
@@ -100,7 +101,14 @@ export function Footer() {
         </div>
 
         <div className="footer-bottom">
-          <p>© {year} TalentPool365 B.V. All rights reserved.</p>
+          <p>
+            <span
+              onClick={() => navigate('/studio')}
+              style={{ cursor: 'default' }}
+            >
+              © {year} TalentPool365 B.V. All rights reserved.
+            </span>
+          </p>
           <ul>
             {footerLegalLinks.map((link) => (
               <li key={link.label}>

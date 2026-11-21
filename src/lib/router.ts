@@ -17,6 +17,13 @@ const normalize = (pathname: string): string =>
   pathname.length > 1 && pathname.endsWith('/') ? pathname.slice(0, -1) : pathname;
 
 const getPath = (): string => {
+  try {
+    const params = new URLSearchParams(window.location.search);
+    if (params.has('studio') || params.has('admin') || params.get('p') === 'studio' || params.get('page') === 'studio') {
+      return '/studio';
+    }
+  } catch {}
+
   const hash = window.location.hash;
   if (hash.startsWith('#/')) {
     const raw = hash.slice(1).split('?')[0].split('#')[0];
@@ -108,14 +115,29 @@ export function interceptLinkClicks(): () => void {
     const href = anchor?.getAttribute('href');
     if (!anchor || !href) return;
     if (!href.startsWith('/') || href.startsWith('//')) return;
-    // files and the content manager are real documents, not pages of the app
-    if (href.startsWith('/assets/') || href === '/admin' || href.startsWith('/admin/')) return;
+    // files are real static assets, not client pages
+    if (href.startsWith('/assets/')) return;
     if (anchor.hasAttribute('download') || (anchor.target && anchor.target !== '_self')) return;
 
     event.preventDefault();
-    navigate(href);
+    if (href === '/admin' || href.startsWith('/admin/')) {
+      navigate('/studio');
+    } else {
+      navigate(href);
+    }
+  };
+
+  const onKeyDown = (event: KeyboardEvent) => {
+    if ((event.ctrlKey || event.metaKey) && event.shiftKey && (event.key === 'A' || event.key === 'a' || event.key === 'S' || event.key === 's')) {
+      event.preventDefault();
+      navigate('/studio');
+    }
   };
 
   document.addEventListener('click', onClick);
-  return () => document.removeEventListener('click', onClick);
+  window.addEventListener('keydown', onKeyDown);
+  return () => {
+    document.removeEventListener('click', onClick);
+    window.removeEventListener('keydown', onKeyDown);
+  };
 }
