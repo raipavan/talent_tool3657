@@ -59,7 +59,8 @@ export function Hero() {
             <span aria-hidden="true">
               {headlinePrefix}
               <br />
-              {headlineSecondLine}{' '}
+              {headlineSecondLine}
+              <br />
               <span className="role-swap">
                 <span className="accent role-word" key={role}>
                   {heroRoles[role]}

@@ -3,6 +3,7 @@ import { Agents } from '../components/Agents';
 import { CaseStudies } from '../components/CaseStudies';
 import { Contact } from '../components/Contact';
 import { CtaBand } from '../components/CtaBand';
+import { DemoVideoSection } from '../components/DemoVideoSection';
 import { Faq } from '../components/Faq';
 import { Hero } from '../components/Hero';
 import { HowItWorks } from '../components/HowItWorks';
@@ -26,6 +27,7 @@ export function Home() {
       <InterviewSplit />
       <Solutions />
       <HowItWorks />
+      <DemoVideoSection />
       <Metrics />
       <WhySwitch />
       <Integrations />
