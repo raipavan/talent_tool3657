@@ -1,9 +1,271 @@
 import { useState, useEffect } from 'react';
 import { useSanityContent, type PlanModel, type PricingComparisonFeature } from '../sanity/SanityProvider';
+import { productPages } from '../data/products';
 
 const AUTH_STORAGE_KEY = 'tp365_studio_authenticated';
 const PASSWORD_STORAGE_KEY = 'tp365_studio_password';
 const USERNAME_STORAGE_KEY = 'tp365_studio_username';
+const PAGE_OVERRIDES_STORAGE_KEY = 'tp365_cms_page_overrides';
+
+export interface PageItem {
+  id: string;
+  title: string;
+  path: string;
+  category: 'Core' | 'Products' | 'Company' | 'Solutions' | 'Resources';
+  description: string;
+  badge?: string;
+  editableSection?: 'pricing' | 'home' | 'product' | 'navigation' | 'generic';
+}
+
+const STATIC_ALL_PAGES: PageItem[] = [
+  // Core Pages
+  {
+    id: 'home',
+    title: 'Home Page',
+    path: '/',
+    category: 'Core',
+    description: 'Main landing page featuring Agentic AI sourcing, screening, assessments, and interview automation highlights.',
+    badge: 'High Traffic',
+    editableSection: 'home',
+  },
+  {
+    id: 'pricing',
+    title: 'Pricing & Plans',
+    path: '/pricing',
+    category: 'Core',
+    description: '14-day free trial, Starter, Professional, and Enterprise plans with 13-row feature comparison matrix and FAQs.',
+    badge: 'Conversion Key',
+    editableSection: 'pricing',
+  },
+  {
+    id: 'get-started',
+    title: 'Get Started & Demo',
+    path: '/get-started',
+    category: 'Core',
+    description: 'Interactive demo booking and free trial registration with qualification form.',
+    badge: 'Conversion Key',
+    editableSection: 'generic',
+  },
+  {
+    id: 'how-it-works',
+    title: 'How It Works',
+    path: '/how-it-works',
+    category: 'Core',
+    description: 'End-to-end recruitment workflow from job requisition intake to automated interview evaluation.',
+    editableSection: 'generic',
+  },
+  {
+    id: 'support',
+    title: 'Support & Help Center',
+    path: '/support',
+    category: 'Core',
+    description: 'Knowledge base, customer support contact, SLA details, and onboarding documentation.',
+    editableSection: 'generic',
+  },
+
+  // Products
+  {
+    id: 'products-overview',
+    title: 'Platform Overview',
+    path: '/products',
+    category: 'Products',
+    description: 'Interactive overview of all nine hiring products and how they connect seamlessly.',
+    badge: 'Product Hub',
+    editableSection: 'generic',
+  },
+  {
+    id: 'prod-talent-sourcing',
+    title: 'Talent Sourcing',
+    path: '/products/talent-sourcing',
+    category: 'Products',
+    description: 'Agentic AI candidate discovery across ATS, resume databases, and job board pools.',
+    editableSection: 'product',
+  },
+  {
+    id: 'prod-candidate-screening',
+    title: 'Candidate Screening',
+    path: '/products/candidate-screening',
+    category: 'Products',
+    description: 'Automated semantic resume parsing, match scoring, and unbiased shortlisting.',
+    editableSection: 'product',
+  },
+  {
+    id: 'prod-ai-assessments',
+    title: 'Agentic AI Assessments',
+    path: '/products/ai-assessments',
+    category: 'Products',
+    description: 'Technical, aptitude, and cognitive tests graded autonomously against company hiring bars.',
+    editableSection: 'product',
+  },
+  {
+    id: 'prod-ai-interviews',
+    title: 'Agentic AI Interviews',
+    path: '/products/ai-interviews',
+    category: 'Products',
+    description: 'Structured video, voice, and live coding interviews with anti-cheat proctoring.',
+    editableSection: 'product',
+  },
+  {
+    id: 'prod-recruiter-workspace',
+    title: 'Recruiter Workspace',
+    path: '/products/recruiter-workspace',
+    category: 'Products',
+    description: 'Collaborative candidate pipelines, hiring team notes, feedback rubrics, and approval workflows.',
+    editableSection: 'product',
+  },
+  {
+    id: 'prod-candidate-engagement',
+    title: 'Candidate Engagement',
+    path: '/products/candidate-engagement',
+    category: 'Products',
+    description: 'WhatsApp, SMS, and email candidate nurturing chatbots with instant automated updates.',
+    editableSection: 'product',
+  },
+  {
+    id: 'prod-hiring-offer-management',
+    title: 'Hiring & Offer Management',
+    path: '/products/hiring-offer-management',
+    category: 'Products',
+    description: 'Final interviews, hiring panel scorecards, automated offer letters, and e-signatures.',
+    editableSection: 'product',
+  },
+  {
+    id: 'prod-analytics-reporting',
+    title: 'Analytics & Reporting',
+    path: '/products/analytics-reporting',
+    category: 'Products',
+    description: 'Time-to-hire, funnel drop-off, recruiter productivity KPIs, and diversity metrics.',
+    editableSection: 'product',
+  },
+  {
+    id: 'prod-compliance-security',
+    title: 'Enterprise Compliance & Security',
+    path: '/products/compliance-security',
+    category: 'Products',
+    description: 'SOC 2 Type II, ISO 27001, GDPR compliance, immutable audit trails, and role-based access.',
+    editableSection: 'product',
+  },
+
+  // Solutions & Proof
+  {
+    id: 'solutions',
+    title: 'Solutions Overview',
+    path: '/solutions',
+    category: 'Solutions',
+    description: 'Customized recruitment workflows designed for Technology, Healthcare, Finance, and High-Volume hiring.',
+    editableSection: 'generic',
+  },
+  {
+    id: 'integrations',
+    title: 'Integrations Ecosystem',
+    path: '/integrations',
+    category: 'Solutions',
+    description: 'Direct integrations with Workday, Greenhouse, Lever, SAP SuccessFactors, Slack, and calendars.',
+    badge: '40+ Connectors',
+    editableSection: 'generic',
+  },
+  {
+    id: 'customers',
+    title: 'Customer Stories',
+    path: '/customers',
+    category: 'Solutions',
+    description: 'Quotes, testimonials, and verified hiring speed results from talent leaders.',
+    editableSection: 'generic',
+  },
+  {
+    id: 'case-studies',
+    title: 'Case Studies',
+    path: '/case-studies',
+    category: 'Solutions',
+    description: 'In-depth case studies documenting 68% time-to-hire reduction and 45% recruiting cost savings.',
+    badge: 'Proof Data',
+    editableSection: 'generic',
+  },
+
+  // Company Pages
+  {
+    id: 'company-about',
+    title: 'About TalentPool365',
+    path: '/company/about',
+    category: 'Company',
+    description: 'Company mission, founding vision, leadership values, and global operations.',
+    editableSection: 'generic',
+  },
+  {
+    id: 'company-leadership',
+    title: 'Leadership Team',
+    path: '/company/leadership',
+    category: 'Company',
+    description: 'Executive profiles, advisory board, and key product leadership team.',
+    editableSection: 'generic',
+  },
+  {
+    id: 'company-careers',
+    title: 'Careers & Hiring',
+    path: '/company/careers',
+    category: 'Company',
+    description: 'Open engineering, product, and sales positions in Amsterdam, Austin, and Bengaluru.',
+    editableSection: 'generic',
+  },
+  {
+    id: 'company-partners',
+    title: 'Partners Program',
+    path: '/company/partners',
+    category: 'Company',
+    description: 'Technology partner, implementation, and referral partner programs.',
+    editableSection: 'generic',
+  },
+  {
+    id: 'company-technology',
+    title: 'Technology & AI Guardrails',
+    path: '/company/technology',
+    category: 'Company',
+    description: 'Explainable AI scoring, zero hallucinations, bias mitigation, and algorithm safety.',
+    editableSection: 'generic',
+  },
+  {
+    id: 'company-news',
+    title: 'News & Press Releases',
+    path: '/company/news',
+    category: 'Company',
+    description: 'Company announcements, industry awards, and press release archive.',
+    editableSection: 'generic',
+  },
+  {
+    id: 'company-contact',
+    title: 'Contact Us',
+    path: '/company/contact',
+    category: 'Company',
+    description: 'Direct sales inquiry forms, press contact, phone numbers, and physical office addresses.',
+    editableSection: 'generic',
+  },
+
+  // Resources & Legal
+  {
+    id: 'resources',
+    title: 'Resources & Guides',
+    path: '/resources',
+    category: 'Resources',
+    description: 'E-books, hiring checklists, ROI calculators, and talent acquisition whitepapers.',
+    editableSection: 'generic',
+  },
+  {
+    id: 'blog',
+    title: 'Hiring Notes & Blog',
+    path: '/blog',
+    category: 'Resources',
+    description: 'Articles, recruiting benchmarks, and practical guides on Agentic AI hiring.',
+    editableSection: 'generic',
+  },
+  {
+    id: 'legal',
+    title: 'Legal & Privacy Policy',
+    path: '/legal',
+    category: 'Resources',
+    description: 'Terms of service, privacy notice, GDPR policy, data processing agreement, and cookies.',
+    editableSection: 'generic',
+  },
+];
 
 export function SanityStudioPage() {
   const {
@@ -49,14 +311,38 @@ export function SanityStudioPage() {
   const [securityMessage, setSecurityMessage] = useState<{ text: string; success: boolean } | null>(null);
 
   // Studio Tabs
-  const [activeTab, setActiveTab] = useState<'pricing' | 'home' | 'navigation' | 'sanity' | 'security'>('pricing');
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'pricing' | 'home' | 'products' | 'navigation' | 'sanity' | 'security'>('dashboard');
   const [saveNotification, setSaveNotification] = useState<string | null>(null);
   const [syncStatus, setSyncStatus] = useState<{ loading: boolean; msg: string; success?: boolean } | null>(null);
+
+  // Dashboard Filters & Search
+  const [pageSearchQuery, setPageSearchQuery] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState<string>('All');
+
+  // Quick Edit Page Modal
+  const [editingPage, setEditingPage] = useState<PageItem | null>(null);
+  const [pageOverrides, setPageOverrides] = useState<Record<string, { title?: string; headline?: string; lede?: string; ctaText?: string }>>(() => {
+    try {
+      const saved = localStorage.getItem(PAGE_OVERRIDES_STORAGE_KEY);
+      return saved ? JSON.parse(saved) : {};
+    } catch {
+      return {};
+    }
+  });
+  const [editFormDraft, setEditFormDraft] = useState<{ title: string; headline: string; lede: string; ctaText: string }>({
+    title: '',
+    headline: '',
+    lede: '',
+    ctaText: '',
+  });
 
   // Local drafts
   const [pricingDraft, setPricingDraft] = useState(pricing);
   const [configDraft, setConfigDraft] = useState(sanityConfig);
   const [homeDraft, setHomeDraft] = useState(home);
+
+  // Selected product in Products tab
+  const [selectedProductSlug, setSelectedProductSlug] = useState<string>(productPages[0]?.slug || 'talent-sourcing');
 
   useEffect(() => {
     setPricingDraft(pricing);
@@ -131,14 +417,13 @@ export function SanityStudioPage() {
     notify('🚪 You have successfully signed out of Studio.');
   };
 
-  // Change password handler (works from Modal or Security Tab)
+  // Change password handler
   const handleChangePassword = (e: React.FormEvent) => {
     e.preventDefault();
     setSecurityMessage(null);
 
     const currentPass = getStoredPassword();
 
-    // If a password was previously set and is not empty, require current password verification
     if (currentPasswordInput && currentPasswordInput !== currentPass && currentPass !== 'admin') {
       setSecurityMessage({ text: 'Current password does not match.', success: false });
       return;
@@ -170,11 +455,55 @@ export function SanityStudioPage() {
     }
   };
 
-  // Reset password to default
   const handleResetPasswordDefault = () => {
     localStorage.removeItem(PASSWORD_STORAGE_KEY);
     setSecurityMessage({ text: 'Password reset back to factory default: "admin"', success: true });
     notify('Password reset to default ("admin")');
+  };
+
+  // Open Quick Edit for a Page
+  const openPageEditor = (page: PageItem) => {
+    if (page.editableSection === 'pricing') {
+      setActiveTab('pricing');
+      return;
+    }
+    if (page.editableSection === 'home') {
+      setActiveTab('home');
+      return;
+    }
+    if (page.editableSection === 'product') {
+      const slug = page.path.replace('/products/', '');
+      setSelectedProductSlug(slug);
+      setActiveTab('products');
+      return;
+    }
+
+    const currentSaved = pageOverrides[page.id] || {};
+    setEditFormDraft({
+      title: currentSaved.title || page.title,
+      headline: currentSaved.headline || page.title,
+      lede: currentSaved.lede || page.description,
+      ctaText: currentSaved.ctaText || 'Get Started',
+    });
+    setEditingPage(page);
+  };
+
+  const handleSavePageOverride = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingPage) return;
+
+    const nextOverrides = {
+      ...pageOverrides,
+      [editingPage.id]: editFormDraft,
+    };
+    setPageOverrides(nextOverrides);
+    try {
+      localStorage.setItem(PAGE_OVERRIDES_STORAGE_KEY, JSON.stringify(nextOverrides));
+    } catch {
+      // ignore
+    }
+    notify(`✅ Content for "${editingPage.title}" updated successfully!`);
+    setEditingPage(null);
   };
 
   const handleSavePricing = () => {
@@ -287,6 +616,19 @@ export function SanityStudioPage() {
       faqs: prev.faqs.filter((_, i) => i !== idx),
     }));
   };
+
+  // Filtered pages for Dashboard directory
+  const filteredPages = STATIC_ALL_PAGES.filter((page) => {
+    const matchesCategory = selectedCategory === 'All' || page.category === selectedCategory;
+    const matchesSearch =
+      page.title.toLowerCase().includes(pageSearchQuery.toLowerCase()) ||
+      page.path.toLowerCase().includes(pageSearchQuery.toLowerCase()) ||
+      page.description.toLowerCase().includes(pageSearchQuery.toLowerCase());
+    return matchesCategory && matchesSearch;
+  });
+
+  // Current product selected in Products tab
+  const currentProduct = productPages.find((p) => p.slug === selectedProductSlug) || productPages[0];
 
   // ==========================================
   // 1. IF NOT AUTHENTICATED: SHOW SIGN IN FORM
@@ -544,12 +886,12 @@ export function SanityStudioPage() {
   }
 
   // ==========================================
-  // 2. AUTHENTICATED: RENDER FULL STUDIO
+  // 2. AUTHENTICATED: RENDER FULL STUDIO & CMS DASHBOARD
   // ==========================================
   const currentUser = localStorage.getItem(USERNAME_STORAGE_KEY) || 'admin';
 
   return (
-    <div style={{ maxWidth: 1200, margin: '0 auto', padding: '40px 24px', fontFamily: 'var(--font-body)' }}>
+    <div style={{ maxWidth: 1280, margin: '0 auto', padding: '36px 24px', fontFamily: 'var(--font-body)' }}>
       {/* CHANGE PASSWORD POPUP MODAL */}
       {isPasswordModalOpen && (
         <div
@@ -697,17 +1039,132 @@ export function SanityStudioPage() {
         </div>
       )}
 
-      {/* Top Banner / Breadcrumb & User Bar */}
+      {/* QUICK PAGE EDIT MODAL */}
+      {editingPage && (
+        <div
+          style={{
+            position: 'fixed',
+            inset: 0,
+            background: 'rgba(18, 63, 59, 0.45)',
+            backdropFilter: 'blur(4px)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 9999,
+            padding: 20,
+          }}
+        >
+          <div
+            style={{
+              background: '#fff',
+              maxWidth: 600,
+              width: '100%',
+              borderRadius: 'var(--radius-lg)',
+              boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
+              padding: '32px 28px',
+              border: '1px solid var(--color-border)',
+            }}
+          >
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+              <div>
+                <span style={{ fontSize: '0.75rem', fontWeight: 700, padding: '3px 8px', borderRadius: 4, background: 'var(--color-outline-fill)', color: 'var(--color-primary)' }}>
+                  {editingPage.category}
+                </span>
+                <h3 style={{ fontSize: '1.3rem', fontWeight: 800, color: 'var(--color-primary)', marginTop: 4 }}>
+                  Edit Content: {editingPage.title}
+                </h3>
+                <span style={{ fontSize: '0.82rem', color: 'var(--color-text-muted)' }}>
+                  Route: <code>{editingPage.path}</code>
+                </span>
+              </div>
+              <button
+                onClick={() => setEditingPage(null)}
+                style={{ background: 'transparent', border: 'none', fontSize: '1.4rem', color: '#9CA3AF', cursor: 'pointer' }}
+              >
+                ×
+              </button>
+            </div>
+
+            <form onSubmit={handleSavePageOverride}>
+              <div style={{ marginBottom: 14 }}>
+                <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 700, marginBottom: 6 }}>
+                  Page Title (Browser Tab & SEO)
+                </label>
+                <input
+                  type="text"
+                  value={editFormDraft.title}
+                  onChange={(e) => setEditFormDraft({ ...editFormDraft, title: e.target.value })}
+                  style={{ width: '100%', padding: '9px 12px', borderRadius: 6, border: '1px solid var(--color-border)', fontSize: '0.92rem', boxSizing: 'border-box' }}
+                />
+              </div>
+
+              <div style={{ marginBottom: 14 }}>
+                <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 700, marginBottom: 6 }}>
+                  Hero Headline
+                </label>
+                <input
+                  type="text"
+                  value={editFormDraft.headline}
+                  onChange={(e) => setEditFormDraft({ ...editFormDraft, headline: e.target.value })}
+                  style={{ width: '100%', padding: '9px 12px', borderRadius: 6, border: '1px solid var(--color-border)', fontSize: '0.92rem', boxSizing: 'border-box' }}
+                />
+              </div>
+
+              <div style={{ marginBottom: 14 }}>
+                <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 700, marginBottom: 6 }}>
+                  Lede Description / Summary
+                </label>
+                <textarea
+                  rows={3}
+                  value={editFormDraft.lede}
+                  onChange={(e) => setEditFormDraft({ ...editFormDraft, lede: e.target.value })}
+                  style={{ width: '100%', padding: '9px 12px', borderRadius: 6, border: '1px solid var(--color-border)', fontSize: '0.9rem', boxSizing: 'border-box' }}
+                />
+              </div>
+
+              <div style={{ marginBottom: 20 }}>
+                <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 700, marginBottom: 6 }}>
+                  Primary CTA Text
+                </label>
+                <input
+                  type="text"
+                  value={editFormDraft.ctaText}
+                  onChange={(e) => setEditFormDraft({ ...editFormDraft, ctaText: e.target.value })}
+                  style={{ width: '100%', padding: '9px 12px', borderRadius: 6, border: '1px solid var(--color-border)', fontSize: '0.92rem', boxSizing: 'border-box' }}
+                />
+              </div>
+
+              <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end' }}>
+                <button
+                  type="button"
+                  onClick={() => setEditingPage(null)}
+                  style={{ padding: '9px 16px', borderRadius: 6, background: '#fff', border: '1px solid var(--color-border)', fontWeight: 600, cursor: 'pointer' }}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  style={{ padding: '9px 24px', borderRadius: 6, background: 'var(--color-primary)', color: '#fff', border: 'none', fontWeight: 700, cursor: 'pointer' }}
+                >
+                  Save Page Changes
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* TOP HEADER: TITLE, BADGES & USER BAR */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 28, flexWrap: 'wrap', gap: 16 }}>
         <div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-            <span style={{ fontSize: '1.75rem', fontWeight: 800, color: 'var(--color-primary)' }}>
-              TalentPool365 Studio & CMS
+            <span style={{ fontSize: '1.85rem', fontWeight: 800, color: 'var(--color-primary)', letterSpacing: '-0.02em' }}>
+              TalentPool365 CMS Dashboard
             </span>
             <span
               style={{
                 fontSize: '0.78rem',
-                fontWeight: 600,
+                fontWeight: 700,
                 padding: '4px 10px',
                 borderRadius: 999,
                 background: isSanityLive ? '#DCFCE7' : '#FEF3C7',
@@ -715,17 +1172,16 @@ export function SanityStudioPage() {
                 border: `1px solid ${isSanityLive ? '#86EFAC' : '#FCD34D'}`,
               }}
             >
-              {isSanityLive ? '● Sanity Cloud Connected' : '● Live Local Dual-Sync (Ready)'}
+              {isSanityLive ? '● Sanity Cloud Connected' : '● Live Dual-Sync Active'}
             </span>
           </div>
           <p style={{ color: 'var(--color-text-muted)', fontSize: '0.95rem', marginTop: 4 }}>
-            Visual Content Management Studio — edit pricing, plans, headlines, and content with instant real-time sync.
+            Central content hub managing all 29 website pages, products, pricing tiers, and global content.
           </p>
         </div>
 
         {/* TOP ACTION BAR: USER, CHANGE PASSWORD & SIGN OUT */}
         <div style={{ display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap' }}>
-          {/* Active User Badge */}
           <div
             style={{
               display: 'flex',
@@ -741,10 +1197,9 @@ export function SanityStudioPage() {
             }}
           >
             <span style={{ width: 8, height: 8, borderRadius: '50%', background: '#10B981' }}></span>
-            <span>Signed in: {currentUser}</span>
+            <span>Admin: {currentUser}</span>
           </div>
 
-          {/* Change Password Button */}
           <button
             onClick={() => setIsPasswordModalOpen(true)}
             title="Change Studio Admin Password"
@@ -766,7 +1221,6 @@ export function SanityStudioPage() {
             🔑 Change Password
           </button>
 
-          {/* Prominent Sign Out Button */}
           <button
             onClick={handleLogout}
             title="Sign out and lock Studio"
@@ -793,7 +1247,6 @@ export function SanityStudioPage() {
             <span>Sign Out</span>
           </button>
 
-          {/* Previews */}
           <a
             href="/pricing"
             target="_blank"
@@ -832,6 +1285,8 @@ export function SanityStudioPage() {
             onClick={() => {
               if (confirm('Reset all website content back to factory defaults?')) {
                 resetDefaults();
+                localStorage.removeItem(PAGE_OVERRIDES_STORAGE_KEY);
+                setPageOverrides({});
                 setPricingDraft(pricing);
                 setHomeDraft(home);
                 notify('Content reset to factory defaults.');
@@ -880,8 +1335,131 @@ export function SanityStudioPage() {
         </div>
       )}
 
-      {/* Tabs */}
+      {/* TOP KPI DASHBOARD CARDS */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 16, marginBottom: 28 }}>
+        {/* Card 1 */}
+        <div
+          onClick={() => setActiveTab('dashboard')}
+          style={{
+            background: '#ffffff',
+            padding: '20px 22px',
+            borderRadius: 'var(--radius)',
+            border: activeTab === 'dashboard' ? '2px solid var(--color-secondary)' : '1px solid var(--color-border)',
+            boxShadow: 'var(--shadow-sm)',
+            cursor: 'pointer',
+          }}
+        >
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+            <span style={{ fontSize: '0.82rem', fontWeight: 700, color: 'var(--color-text-muted)', textTransform: 'uppercase' }}>
+              Total Website Pages
+            </span>
+            <span style={{ fontSize: '1.3rem' }}>📄</span>
+          </div>
+          <div style={{ fontSize: '1.8rem', fontWeight: 800, color: 'var(--color-primary)' }}>
+            {STATIC_ALL_PAGES.length} Pages
+          </div>
+          <span style={{ fontSize: '0.78rem', color: '#059669', fontWeight: 600 }}>
+            ● 100% Live & Navigable
+          </span>
+        </div>
+
+        {/* Card 2 */}
+        <div
+          onClick={() => setActiveTab('products')}
+          style={{
+            background: '#ffffff',
+            padding: '20px 22px',
+            borderRadius: 'var(--radius)',
+            border: activeTab === 'products' ? '2px solid var(--color-secondary)' : '1px solid var(--color-border)',
+            boxShadow: 'var(--shadow-sm)',
+            cursor: 'pointer',
+          }}
+        >
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+            <span style={{ fontSize: '0.82rem', fontWeight: 700, color: 'var(--color-text-muted)', textTransform: 'uppercase' }}>
+              Product Engines
+            </span>
+            <span style={{ fontSize: '1.3rem' }}>🚀</span>
+          </div>
+          <div style={{ fontSize: '1.8rem', fontWeight: 800, color: 'var(--color-primary)' }}>
+            9 Products
+          </div>
+          <span style={{ fontSize: '0.78rem', color: 'var(--color-secondary)', fontWeight: 600 }}>
+            Sourcing to Compliance
+          </span>
+        </div>
+
+        {/* Card 3 */}
+        <div
+          onClick={() => setActiveTab('pricing')}
+          style={{
+            background: '#ffffff',
+            padding: '20px 22px',
+            borderRadius: 'var(--radius)',
+            border: activeTab === 'pricing' ? '2px solid var(--color-secondary)' : '1px solid var(--color-border)',
+            boxShadow: 'var(--shadow-sm)',
+            cursor: 'pointer',
+          }}
+        >
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+            <span style={{ fontSize: '0.82rem', fontWeight: 700, color: 'var(--color-text-muted)', textTransform: 'uppercase' }}>
+              Subscription Plans
+            </span>
+            <span style={{ fontSize: '1.3rem' }}>💳</span>
+          </div>
+          <div style={{ fontSize: '1.8rem', fontWeight: 800, color: 'var(--color-primary)' }}>
+            3 Plans
+          </div>
+          <span style={{ fontSize: '0.78rem', color: 'var(--color-secondary)', fontWeight: 600 }}>
+            Starter, Pro & Enterprise
+          </span>
+        </div>
+
+        {/* Card 4 */}
+        <div
+          onClick={() => setActiveTab('sanity')}
+          style={{
+            background: '#ffffff',
+            padding: '20px 22px',
+            borderRadius: 'var(--radius)',
+            border: activeTab === 'sanity' ? '2px solid var(--color-secondary)' : '1px solid var(--color-border)',
+            boxShadow: 'var(--shadow-sm)',
+            cursor: 'pointer',
+          }}
+        >
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+            <span style={{ fontSize: '0.82rem', fontWeight: 700, color: 'var(--color-text-muted)', textTransform: 'uppercase' }}>
+              CMS Sync Engine
+            </span>
+            <span style={{ fontSize: '1.3rem' }}>⚡</span>
+          </div>
+          <div style={{ fontSize: '1.25rem', fontWeight: 800, color: 'var(--color-primary)', marginTop: 4 }}>
+            Dual-Mode Active
+          </div>
+          <span style={{ fontSize: '0.78rem', color: '#059669', fontWeight: 600 }}>
+            Real-time Browser + Sanity
+          </span>
+        </div>
+      </div>
+
+      {/* NAVIGATION TABS */}
       <div style={{ display: 'flex', gap: 8, borderBottom: '2px solid var(--color-border)', marginBottom: 28, overflowX: 'auto' }}>
+        <button
+          onClick={() => setActiveTab('dashboard')}
+          style={{
+            padding: '12px 20px',
+            fontWeight: 700,
+            fontSize: '0.95rem',
+            background: 'transparent',
+            border: 'none',
+            borderBottom: activeTab === 'dashboard' ? '3px solid var(--color-primary)' : '3px solid transparent',
+            color: activeTab === 'dashboard' ? 'var(--color-primary)' : 'var(--color-text-muted)',
+            cursor: 'pointer',
+            whiteSpace: 'nowrap',
+          }}
+        >
+          📊 Dashboard & All 29 Pages
+        </button>
         <button
           onClick={() => setActiveTab('pricing')}
           style={{
@@ -913,6 +1491,22 @@ export function SanityStudioPage() {
           }}
         >
           🏠 Homepage & Hero
+        </button>
+        <button
+          onClick={() => setActiveTab('products')}
+          style={{
+            padding: '12px 20px',
+            fontWeight: 700,
+            fontSize: '0.95rem',
+            background: 'transparent',
+            border: 'none',
+            borderBottom: activeTab === 'products' ? '3px solid var(--color-primary)' : '3px solid transparent',
+            color: activeTab === 'products' ? 'var(--color-primary)' : 'var(--color-text-muted)',
+            cursor: 'pointer',
+            whiteSpace: 'nowrap',
+          }}
+        >
+          🚀 Products Catalog ({productPages.length})
         </button>
         <button
           onClick={() => setActiveTab('navigation')}
@@ -964,7 +1558,238 @@ export function SanityStudioPage() {
         </button>
       </div>
 
-      {/* TAB 1: PRICING */}
+      {/* ==================================================== */}
+      {/* TAB 0: COMPLETE CMS DASHBOARD & ALL 29 PAGES DIRECTORY */}
+      {/* ==================================================== */}
+      {activeTab === 'dashboard' && (
+        <div>
+          {/* Header & Search Bar */}
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20, flexWrap: 'wrap', gap: 16 }}>
+            <div>
+              <h2 style={{ fontSize: '1.4rem', fontWeight: 800, color: 'var(--color-primary)' }}>
+                Website Pages Directory (29 Pages)
+              </h2>
+              <p style={{ color: 'var(--color-text-muted)', fontSize: '0.9rem' }}>
+                Manage, edit content, and inspect live preview links for every page in the platform.
+              </p>
+            </div>
+
+            {/* Search Input */}
+            <div style={{ minWidth: 280 }}>
+              <input
+                type="text"
+                placeholder="🔍 Search pages by title, slug, or category..."
+                value={pageSearchQuery}
+                onChange={(e) => setPageSearchQuery(e.target.value)}
+                style={{
+                  width: '100%',
+                  padding: '10px 14px',
+                  borderRadius: 'var(--radius)',
+                  border: '1px solid var(--color-border)',
+                  fontSize: '0.9rem',
+                  outline: 'none',
+                  boxSizing: 'border-box',
+                }}
+              />
+            </div>
+          </div>
+
+          {/* Category Filter Pills */}
+          <div style={{ display: 'flex', gap: 8, marginBottom: 20, flexWrap: 'wrap' }}>
+            {['All', 'Core', 'Products', 'Solutions', 'Company', 'Resources'].map((cat) => (
+              <button
+                key={cat}
+                onClick={() => setSelectedCategory(cat)}
+                style={{
+                  padding: '6px 14px',
+                  borderRadius: 999,
+                  border: selectedCategory === cat ? '1px solid var(--color-primary)' : '1px solid var(--color-border)',
+                  background: selectedCategory === cat ? 'var(--color-primary)' : '#fff',
+                  color: selectedCategory === cat ? '#fff' : 'var(--color-text)',
+                  fontSize: '0.82rem',
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                }}
+              >
+                {cat} {cat === 'All' ? `(${STATIC_ALL_PAGES.length})` : `(${STATIC_ALL_PAGES.filter((p) => p.category === cat).length})`}
+              </button>
+            ))}
+          </div>
+
+          {/* Pages Table */}
+          <div style={{ background: '#ffffff', borderRadius: 'var(--radius-lg)', border: '1px solid var(--color-border)', boxShadow: 'var(--shadow-sm)', overflowX: 'auto' }}>
+            <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.9rem' }}>
+              <thead>
+                <tr style={{ background: 'var(--color-bg-light)', borderBottom: '2px solid var(--color-border)' }}>
+                  <th style={{ padding: '14px 18px', fontWeight: 700, color: 'var(--color-primary)' }}>Page Title & Path</th>
+                  <th style={{ padding: '14px 18px', fontWeight: 700, color: 'var(--color-primary)', width: 140 }}>Category</th>
+                  <th style={{ padding: '14px 18px', fontWeight: 700, color: 'var(--color-primary)' }}>Content Summary</th>
+                  <th style={{ padding: '14px 18px', fontWeight: 700, color: 'var(--color-primary)', width: 110, textAlign: 'center' }}>Status</th>
+                  <th style={{ padding: '14px 18px', fontWeight: 700, color: 'var(--color-primary)', width: 220, textAlign: 'right' }}>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {filteredPages.map((page, idx) => {
+                  const hasOverride = Boolean(pageOverrides[page.id]);
+                  return (
+                    <tr
+                      key={page.id}
+                      style={{
+                        borderBottom: '1px solid var(--color-border)',
+                        background: idx % 2 === 0 ? '#ffffff' : '#FAFCF9',
+                      }}
+                    >
+                      {/* Title & Path */}
+                      <td style={{ padding: '14px 18px' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                          <span style={{ fontWeight: 700, color: 'var(--color-text)', fontSize: '0.95rem' }}>
+                            {hasOverride && pageOverrides[page.id]?.title ? pageOverrides[page.id].title : page.title}
+                          </span>
+                          {page.badge && (
+                            <span
+                              style={{
+                                fontSize: '0.72rem',
+                                padding: '2px 8px',
+                                borderRadius: 999,
+                                background: '#FEF3C7',
+                                color: '#92400E',
+                                fontWeight: 700,
+                              }}
+                            >
+                              {page.badge}
+                            </span>
+                          )}
+                          {hasOverride && (
+                            <span
+                              style={{
+                                fontSize: '0.72rem',
+                                padding: '2px 8px',
+                                borderRadius: 999,
+                                background: '#DCFCE7',
+                                color: '#166534',
+                                fontWeight: 700,
+                              }}
+                            >
+                              Customized
+                            </span>
+                          )}
+                        </div>
+                        <div style={{ marginTop: 4 }}>
+                          <code style={{ fontSize: '0.8rem', color: 'var(--color-secondary)', background: 'var(--color-outline-fill)', padding: '2px 6px', borderRadius: 4 }}>
+                            {page.path}
+                          </code>
+                        </div>
+                      </td>
+
+                      {/* Category */}
+                      <td style={{ padding: '14px 18px' }}>
+                        <span
+                          style={{
+                            fontSize: '0.78rem',
+                            fontWeight: 700,
+                            padding: '4px 10px',
+                            borderRadius: 6,
+                            background:
+                              page.category === 'Core'
+                                ? '#E0E7FF'
+                                : page.category === 'Products'
+                                ? '#E0F2FE'
+                                : page.category === 'Solutions'
+                                ? '#F3E8FF'
+                                : page.category === 'Company'
+                                ? '#FEF3C7'
+                                : '#F1F5F9',
+                            color:
+                              page.category === 'Core'
+                                ? '#3730A3'
+                                : page.category === 'Products'
+                                ? '#0369A1'
+                                : page.category === 'Solutions'
+                                ? '#6B21A8'
+                                : page.category === 'Company'
+                                ? '#92400E'
+                                : '#475569',
+                          }}
+                        >
+                          {page.category}
+                        </span>
+                      </td>
+
+                      {/* Description */}
+                      <td style={{ padding: '14px 18px', color: 'var(--color-text-muted)', fontSize: '0.86rem', maxWidth: 360 }}>
+                        {hasOverride && pageOverrides[page.id]?.lede ? pageOverrides[page.id].lede : page.description}
+                      </td>
+
+                      {/* Status */}
+                      <td style={{ padding: '14px 18px', textAlign: 'center' }}>
+                        <span
+                          style={{
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: 5,
+                            fontSize: '0.78rem',
+                            fontWeight: 700,
+                            color: '#15803D',
+                            background: '#DCFCE7',
+                            padding: '3px 8px',
+                            borderRadius: 999,
+                          }}
+                        >
+                          <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#15803D' }}></span>
+                          Live
+                        </span>
+                      </td>
+
+                      {/* Actions */}
+                      <td style={{ padding: '14px 18px', textAlign: 'right' }}>
+                        <div style={{ display: 'inline-flex', gap: 8 }}>
+                          <button
+                            onClick={() => openPageEditor(page)}
+                            style={{
+                              padding: '6px 12px',
+                              borderRadius: 6,
+                              background: 'var(--color-primary)',
+                              color: '#fff',
+                              border: 'none',
+                              fontSize: '0.82rem',
+                              fontWeight: 700,
+                              cursor: 'pointer',
+                            }}
+                          >
+                            ✏️ Edit
+                          </button>
+                          <a
+                            href={page.path}
+                            target="_blank"
+                            rel="noreferrer"
+                            style={{
+                              padding: '6px 12px',
+                              borderRadius: 6,
+                              background: '#fff',
+                              border: '1px solid var(--color-border)',
+                              color: 'var(--color-primary)',
+                              fontSize: '0.82rem',
+                              fontWeight: 600,
+                              textDecoration: 'none',
+                              display: 'inline-block',
+                            }}
+                          >
+                            👁️ View
+                          </a>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+
+      {/* ==================================================== */}
+      {/* TAB 1: PRICING & PLANS */}
+      {/* ==================================================== */}
       {activeTab === 'pricing' && (
         <div>
           {/* Header & Save Action */}
@@ -1313,7 +2138,9 @@ export function SanityStudioPage() {
         </div>
       )}
 
+      {/* ==================================================== */}
       {/* TAB 2: HOMEPAGE & HERO */}
+      {/* ==================================================== */}
       {activeTab === 'home' && (
         <div style={{ background: '#fff', padding: 28, borderRadius: 'var(--radius-lg)', border: '1px solid var(--color-border)' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
@@ -1394,7 +2221,129 @@ export function SanityStudioPage() {
         </div>
       )}
 
-      {/* TAB 3: NAVIGATION & FOOTER */}
+      {/* ==================================================== */}
+      {/* TAB 3: PRODUCTS CATALOG (ALL 9 PRODUCTS) */}
+      {/* ==================================================== */}
+      {activeTab === 'products' && (
+        <div style={{ background: '#fff', padding: 28, borderRadius: 'var(--radius-lg)', border: '1px solid var(--color-border)' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20, flexWrap: 'wrap', gap: 16 }}>
+            <div>
+              <h2 style={{ fontSize: '1.3rem', fontWeight: 800, color: 'var(--color-primary)' }}>
+                Products Catalog Manager ({productPages.length} Products)
+              </h2>
+              <p style={{ color: 'var(--color-text-muted)', fontSize: '0.9rem' }}>
+                Select and customize headlines, summaries, and capability points for any product page.
+              </p>
+            </div>
+            {currentProduct && (
+              <a
+                href={`/products/${currentProduct.slug}`}
+                target="_blank"
+                rel="noreferrer"
+                style={{
+                  padding: '9px 18px',
+                  borderRadius: 'var(--radius)',
+                  border: '1px solid var(--color-border)',
+                  background: '#fff',
+                  fontSize: '0.88rem',
+                  fontWeight: 600,
+                  color: 'var(--color-primary)',
+                  textDecoration: 'none',
+                }}
+              >
+                👁️ View Live Product Page
+              </a>
+            )}
+          </div>
+
+          {/* Product Select Tabs */}
+          <div style={{ display: 'flex', gap: 8, overflowX: 'auto', marginBottom: 24, paddingBottom: 6 }}>
+            {productPages.map((prod) => (
+              <button
+                key={prod.slug}
+                onClick={() => setSelectedProductSlug(prod.slug)}
+                style={{
+                  padding: '8px 16px',
+                  borderRadius: 8,
+                  border: selectedProductSlug === prod.slug ? '2px solid var(--color-primary)' : '1px solid var(--color-border)',
+                  background: selectedProductSlug === prod.slug ? 'var(--color-outline-fill)' : '#fff',
+                  fontWeight: selectedProductSlug === prod.slug ? 800 : 600,
+                  color: 'var(--color-primary)',
+                  fontSize: '0.85rem',
+                  cursor: 'pointer',
+                  whiteSpace: 'nowrap',
+                }}
+              >
+                {prod.title}
+              </button>
+            ))}
+          </div>
+
+          {/* Current Product Content */}
+          {currentProduct && (
+            <div style={{ background: 'var(--color-bg-light)', padding: 24, borderRadius: 'var(--radius)', border: '1px solid var(--color-border)' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginBottom: 16 }}>
+                <div>
+                  <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 700, marginBottom: 6 }}>Product Title</label>
+                  <input
+                    type="text"
+                    defaultValue={currentProduct.title}
+                    style={{ width: '100%', padding: '10px 12px', borderRadius: 6, border: '1px solid var(--color-border)', fontWeight: 700, boxSizing: 'border-box' }}
+                  />
+                </div>
+                <div>
+                  <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 700, marginBottom: 6 }}>URL Path</label>
+                  <input
+                    type="text"
+                    disabled
+                    value={`/products/${currentProduct.slug}`}
+                    style={{ width: '100%', padding: '10px 12px', borderRadius: 6, border: '1px solid var(--color-border)', background: '#F3F4F6', color: '#6B7280', boxSizing: 'border-box' }}
+                  />
+                </div>
+              </div>
+
+              <div style={{ marginBottom: 16 }}>
+                <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 700, marginBottom: 6 }}>Headline</label>
+                <input
+                  type="text"
+                  defaultValue={currentProduct.headline}
+                  style={{ width: '100%', padding: '10px 12px', borderRadius: 6, border: '1px solid var(--color-border)', fontSize: '0.95rem', boxSizing: 'border-box' }}
+                />
+              </div>
+
+              <div style={{ marginBottom: 16 }}>
+                <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 700, marginBottom: 6 }}>Summary Lede</label>
+                <textarea
+                  rows={2}
+                  defaultValue={currentProduct.lede}
+                  style={{ width: '100%', padding: '10px 12px', borderRadius: 6, border: '1px solid var(--color-border)', fontSize: '0.9rem', boxSizing: 'border-box' }}
+                />
+              </div>
+
+              {/* Capabilities List */}
+              <h4 style={{ fontSize: '0.95rem', fontWeight: 700, color: 'var(--color-primary)', marginTop: 20, marginBottom: 10 }}>
+                Capabilities & Feature Modules ({currentProduct.capabilities?.length || 0})
+              </h4>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: 12 }}>
+                {currentProduct.capabilities?.map((cap, cIdx) => (
+                  <div key={cIdx} style={{ background: '#fff', padding: 14, borderRadius: 8, border: '1px solid var(--color-border)' }}>
+                    <div style={{ fontWeight: 700, fontSize: '0.9rem', color: 'var(--color-text)', marginBottom: 4 }}>
+                      {cap.title}
+                    </div>
+                    <div style={{ fontSize: '0.8rem', color: 'var(--color-text-muted)' }}>
+                      {cap.body}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* ==================================================== */}
+      {/* TAB 4: NAVIGATION & FOOTER */}
+      {/* ==================================================== */}
       {activeTab === 'navigation' && (
         <div style={{ background: '#fff', padding: 28, borderRadius: 'var(--radius-lg)', border: '1px solid var(--color-border)' }}>
           <h2 style={{ fontSize: '1.3rem', fontWeight: 700, color: 'var(--color-primary)', marginBottom: 8 }}>Navigation & Global Links</h2>
@@ -1450,7 +2399,9 @@ export function SanityStudioPage() {
         </div>
       )}
 
-      {/* TAB 4: SANITY CLOUD & 404 EXPLANATION */}
+      {/* ==================================================== */}
+      {/* TAB 5: SANITY CLOUD & 404 EXPLANATION */}
+      {/* ==================================================== */}
       {activeTab === 'sanity' && (
         <div style={{ background: '#fff', padding: 28, borderRadius: 'var(--radius-lg)', border: '1px solid var(--color-border)' }}>
           <h2 style={{ fontSize: '1.3rem', fontWeight: 700, color: 'var(--color-primary)', marginBottom: 8 }}>
@@ -1560,7 +2511,9 @@ export function SanityStudioPage() {
         </div>
       )}
 
-      {/* TAB 5: STUDIO SECURITY */}
+      {/* ==================================================== */}
+      {/* TAB 6: STUDIO SECURITY */}
+      {/* ==================================================== */}
       {activeTab === 'security' && (
         <div style={{ background: '#fff', padding: 28, borderRadius: 'var(--radius-lg)', border: '1px solid var(--color-border)' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12, flexWrap: 'wrap', gap: 12 }}>
