@@ -788,7 +788,11 @@ h3, h4 { font-weight: 600; }
   gap: clamp(24px, 5vw, 80px);
   align-items: start;
 }
-.agents-head h2 { color: #fff; }
+.agents-head h2 {
+  color: #fff;
+  font-size: clamp(1.45rem, 1.05rem + 1.2vw, 2rem);
+  line-height: 1.22;
+}
 .agents-sub { margin-top: 14px; max-width: 46ch; color: rgba(255, 255, 255, .76); }
 
 .agents-captions { display: grid; list-style: none; padding: 0; margin: 0; }
