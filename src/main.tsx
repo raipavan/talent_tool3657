@@ -1,6 +1,7 @@
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import App from './App';
+import { SanityProvider } from './sanity/SanityProvider';
 import './styles/global.css';
 import './styles/showcase.css';
 import './styles/pages.css';
@@ -14,6 +15,8 @@ if (!root) {
 
 createRoot(root).render(
   <StrictMode>
-    <App />
+    <SanityProvider>
+      <App />
+    </SanityProvider>
   </StrictMode>,
 );

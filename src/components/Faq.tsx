@@ -1,7 +1,8 @@
 import { useId, useState } from 'react';
-import { faqs, type FaqItem } from '../data/content';
+import { faqs as staticFaqs, type FaqItem } from '../data/content';
 import { Reveal } from './Reveal';
 import { SectionHead } from './SectionHead';
+import { useHomeContent } from '../sanity/SanityProvider';
 
 interface FaqProps {
   items?: FaqItem[];
@@ -12,12 +13,14 @@ interface FaqProps {
 }
 
 export function Faq({
-  items = faqs,
+  items,
   eyebrow = 'Questions, answered',
   title = 'What hiring teams ask *before the trial*',
   body = "No discovery call required to get an answer. If yours isn't here, send it over — a product specialist replies within one business day.",
   contactHref = '#contact',
 }: FaqProps) {
+  const homeContent = useHomeContent();
+  const faqList = items ?? (homeContent?.faqs as FaqItem[]) ?? staticFaqs;
   const [openIndex, setOpenIndex] = useState<number | null>(0);
   const baseId = useId();
 
@@ -40,7 +43,7 @@ export function Faq({
         </div>
 
         <div className="faq-list">
-          {items.map((item, index) => {
+          {faqList.map((item, index) => {
             const isOpen = openIndex === index;
             const questionId = `${baseId}-q-${index}`;
             const answerId = `${baseId}-a-${index}`;

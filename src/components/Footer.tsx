@@ -1,7 +1,11 @@
-import { footerColumns, footerLegalLinks } from '../data/content';
+import { footerColumns as staticFooterColumns, footerLegalLinks as staticFooterLegalLinks, type FooterColumn, type NavLink } from '../data/content';
+import { useNavigationContent } from '../sanity/SanityProvider';
 
 export function Footer() {
   const year = new Date().getFullYear();
+  const navigation = useNavigationContent();
+  const footerColumns = (navigation?.footerColumns ?? staticFooterColumns) as FooterColumn[];
+  const footerLegalLinks = (navigation?.footerLegalLinks ?? staticFooterLegalLinks) as NavLink[];
 
   return (
     <footer className="site-footer" id="footer">

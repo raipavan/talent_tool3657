@@ -1,9 +1,13 @@
-import { interviewSplit } from '../data/content';
+import { interviewSplit as staticInterviewSplit } from '../data/content';
 import { accent } from '../lib/accent';
 import { DemoVideo } from './DemoVideo';
 import { Reveal } from './Reveal';
+import { useHomeContent } from '../sanity/SanityProvider';
 
 export function InterviewSplit() {
+  const home = useHomeContent();
+  const split = home?.interviewSplit ?? staticInterviewSplit;
+
   return (
     <section className="section section--dark section--video on-dark">
       <span className="grain" aria-hidden="true" />
@@ -13,16 +17,16 @@ export function InterviewSplit() {
             <DemoVideo />
           </Reveal>
           <Reveal className="split-copy" variant="right" delay={1}>
-            <p className="eyebrow">{interviewSplit.eyebrow}</p>
-            <h2>{accent(interviewSplit.title)}</h2>
-            <p>{interviewSplit.body}</p>
+            <p className="eyebrow">{split.eyebrow}</p>
+            <h2>{accent(split.title)}</h2>
+            <p>{split.body}</p>
             <ul className="ticks">
-              {interviewSplit.points.map((point) => (
+              {split.points?.map((point: string) => (
                 <li key={point}>{point}</li>
               ))}
             </ul>
             <a className="btn btn-accent" href="#contact">
-              {interviewSplit.cta}
+              {split.cta}
             </a>
           </Reveal>
         </div>

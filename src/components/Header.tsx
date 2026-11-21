@@ -1,8 +1,9 @@
 import { useEffect, useRef, useState } from 'react';
-import { navItems, type NavItem } from '../data/content';
+import { navItems as staticNavItems, type NavItem } from '../data/content';
 import { usePath } from '../lib/router';
 import { useScrolled } from '../lib/useScrolled';
 import { Icon } from './Icon';
+import { useNavigationContent } from '../sanity/SanityProvider';
 
 const canHover = () =>
   typeof window !== 'undefined' && window.matchMedia('(hover: hover) and (pointer: fine)').matches;
@@ -16,6 +17,8 @@ const isCurrent = (item: NavItem, path: string): boolean => {
 export function Header() {
   const scrolled = useScrolled();
   const path = usePath();
+  const navigation = useNavigationContent();
+  const navItems = (navigation?.navItems ?? staticNavItems) as NavItem[];
   const [open, setOpen] = useState(false);
   const [openMenu, setOpenMenu] = useState<string | null>(null);
   const toggleRef = useRef<HTMLButtonElement>(null);

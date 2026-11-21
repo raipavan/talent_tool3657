@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
-import { heroRoles } from '../data/content';
+import { heroRoles as staticHeroRoles } from '../data/content';
 import { enterDelay, prefersReducedMotion, useSceneDepth } from '../lib/motion';
 import { Icon } from './Icon';
+import { useHomeContent } from '../sanity/SanityProvider';
 
 /** Swaps the role in the headline every few seconds. Static under reduced motion. */
 function useRotatingRole(count: number) {
@@ -19,6 +20,8 @@ function useRotatingRole(count: number) {
 }
 
 export function Hero() {
+  const homeContent = useHomeContent();
+  const heroRoles = (homeContent?.heroRoles ?? staticHeroRoles) as string[];
   const role = useRotatingRole(heroRoles.length);
   const sectionRef = useRef<HTMLElement>(null);
   useSceneDepth(sectionRef);

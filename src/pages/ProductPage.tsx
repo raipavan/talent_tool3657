@@ -4,6 +4,8 @@ import { Icon } from '../components/Icon';
 import { ProductMock } from '../components/ProductMock';
 import { SkCtaBanner, SkHero, SkLogoMarquee } from '../components/SeekOutUI';
 import { productPages, productPath, type ProductPage as ProductData } from '../data/products';
+import { useSanityData } from '../sanity/useSanity';
+import { productBySlugQuery } from '../sanity/queries';
 import {
   SourcingExperience,
   ScreeningExperience,
@@ -16,8 +18,13 @@ import {
   ComplianceExperience,
 } from '../components/ProductUniqueExperiences';
 
-export function ProductPage({ product }: { product: ProductData }) {
-  const position = productPages.indexOf(product);
+export function ProductPage({ product: initialProduct }: { product: ProductData }) {
+  const { data: product } = useSanityData<ProductData>(
+    productBySlugQuery,
+    initialProduct,
+    { slug: initialProduct.slug }
+  );
+  const position = productPages.indexOf(initialProduct);
   const previous = productPages[position - 1];
   const next = productPages[position + 1];
 

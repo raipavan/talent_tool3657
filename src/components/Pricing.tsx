@@ -1,7 +1,8 @@
 import { useState } from 'react';
-import { compareRows, plans, type CompareCell, type Plan } from '../data/content';
+import { compareRows as staticCompareRows, plans as staticPlans, type CompareCell, type Plan } from '../data/content';
 import { Reveal } from './Reveal';
 import { SectionHead } from './SectionHead';
+import { usePricingContent } from '../sanity/SanityProvider';
 
 type BillingMode = 'monthly' | 'annual';
 
@@ -27,6 +28,25 @@ interface PricingProps {
 
 export function Pricing({ showHead = true, trialHref = '#contact', quoteHref = '#contact' }: PricingProps) {
   const [mode, setMode] = useState<BillingMode>('monthly');
+  const pricingData = usePricingContent();
+  const compareRows = staticCompareRows;
+
+  // If Sanity plans are loaded with custom numbers, adapt them
+  const activePlans: Plan[] = pricingData?.plans
+    ? pricingData.plans.map((p, idx) => ({
+        name: p.name,
+        sub: p.target,
+        price: p.priceMonthly === 'Custom' ? null : {
+          monthly: parseInt(p.priceMonthly.replace(/\D/g, ''), 10) || (staticPlans[idx]?.price?.monthly ?? 99),
+          annual: parseInt(p.priceAnnual.replace(/\D/g, ''), 10) || (staticPlans[idx]?.price?.annual ?? 79),
+        },
+        note: p.trialNote,
+        cta: p.ctaText,
+        ctaClass: p.isPopular ? 'btn-primary' : p.priceMonthly === 'Custom' ? 'btn-dark' : 'btn-outline',
+        featured: Boolean(p.isPopular),
+        features: p.features,
+      }))
+    : staticPlans;
 
   return (
     <section className="section" id="pricing">
@@ -63,7 +83,7 @@ export function Pricing({ showHead = true, trialHref = '#contact', quoteHref = '
         </div>
 
         <div className="grid grid-3 price-grid">
-          {plans.map((plan, index) => (
+          {activePlans.map((plan, index) => (
             <Reveal
               as="article"
               key={plan.name}

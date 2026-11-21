@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { CinematicCard } from '../components/CinematicMotion';
 import { LeadForm, type LeadField } from '../components/LeadForm';
 import { SkCtaBanner, SkFaq, SkHero } from '../components/SeekOutUI';
+import { usePricingContent } from '../sanity/SanityProvider';
 
 const quoteFields: LeadField[] = [
   { name: 'name', label: 'Full name', required: true, autoComplete: 'name' },
@@ -74,6 +75,11 @@ const faqs = [
 
 export function PricingPage() {
   const [annual, setAnnual] = useState(true);
+  const pricingData = usePricingContent();
+
+  const plans = pricingData?.plans || [];
+  const comparisonRows = pricingData?.comparisonFeatures || comparisonFeatures;
+  const faqItems = pricingData?.faqs || faqs;
 
   return (
     <main className="sk-page">
@@ -93,8 +99,8 @@ export function PricingPage() {
         <div className="container">
           <div className="sk-promo-banner" style={{ marginBottom: 44 }}>
             <div>
-              <h2>Try TalentPool365 free for 14 days</h2>
-              <p>Run Agentic AI sourcing, semantic resume screening, and automated interviews on a live role. No credit card required.</p>
+              <h2>{pricingData?.heroTitle || 'Try TalentPool365 free for 14 days'}</h2>
+              <p>{pricingData?.heroSubtitle || 'Run Agentic AI sourcing, semantic resume screening, and automated interviews on a live role. No credit card required.'}</p>
             </div>
             <a className="sk-btn-orange" href="/get-started#start-free-trial">
               Get free trial →
@@ -117,102 +123,45 @@ export function PricingPage() {
           </div>
 
           <div className="pricing-plans-grid">
-            {/* Starter Plan */}
-            <CinematicCard className="pricing-plan-card" variant="up" delay={0}>
-              <div className="plan-card-header">
-                <span className="plan-badge">Starter Plan</span>
-                <h3>Starter</h3>
-                <p className="plan-target">Best for startups and small teams making their first hires.</p>
-                <div className="plan-price">
-                  <strong>{annual ? '$79' : '$99'}</strong>
-                  <span>/ user / month</span>
+            {plans.map((plan, idx) => (
+              <CinematicCard
+                key={plan.name}
+                className={`pricing-plan-card${plan.isPopular ? ' is-popular' : ''}`}
+                variant={plan.isPopular ? 'zoom' : 'up'}
+                delay={idx}
+              >
+                {plan.isPopular && <div className="popular-ribbon">Most Popular</div>}
+                <div className="plan-card-header">
+                  <span className={`plan-badge${plan.isPopular ? ' plan-badge--popular' : ''}`}>{plan.badge}</span>
+                  <h3>{plan.name}</h3>
+                  <p className="plan-target">{plan.target}</p>
+                  <div className="plan-price">
+                    <strong style={plan.priceMonthly === 'Custom' ? { fontSize: '2rem' } : undefined}>
+                      {annual ? plan.priceAnnual : plan.priceMonthly}
+                    </strong>
+                    <span>{plan.priceMonthly === 'Custom' ? 'tailored to volume' : '/ user / month'}</span>
+                  </div>
+                  <p className="plan-trial-note">{plan.trialNote}</p>
                 </div>
-                <p className="plan-trial-note">Free for 14 days, no card required</p>
-              </div>
-              <div className="plan-body">
-                <h4>Everything you need to move from spreadsheets to smarter hiring:</h4>
-                <ul className="ticks">
-                  <li>Agentic AI candidate discovery and resume database search</li>
-                  <li>Resume parsing and Agentic AI candidate matching</li>
-                  <li>Basic assessments and automated interviews</li>
-                  <li>Candidate pipeline and email automation</li>
-                  <li>Interview scheduling calendar sync</li>
-                  <li>Up to 5 active jobs and 500 candidates/month</li>
-                  <li>Standard email support</li>
-                </ul>
-              </div>
-              <div className="plan-card-footer">
-                <a className="sk-btn-outline-dark" style={{ width: '100%' }} href="/get-started#start-free-trial">
-                  Start Free Trial
-                </a>
-              </div>
-            </CinematicCard>
-
-            {/* Professional Plan */}
-            <CinematicCard className="pricing-plan-card is-popular" variant="zoom" delay={1}>
-              <div className="popular-ribbon">Most Popular</div>
-              <div className="plan-card-header">
-                <span className="plan-badge plan-badge--popular">Professional Plan</span>
-                <h3>Professional</h3>
-                <p className="plan-target">Best for growing and mid-sized companies hiring across teams.</p>
-                <div className="plan-price">
-                  <strong>{annual ? '$199' : '$249'}</strong>
-                  <span>/ user / month</span>
+                <div className="plan-body">
+                  <h4>{plan.featureTitle}</h4>
+                  <ul className="ticks">
+                    {plan.features.map((feat) => (
+                      <li key={feat}>{feat}</li>
+                    ))}
+                  </ul>
                 </div>
-                <p className="plan-trial-note">Billed annually or monthly</p>
-              </div>
-              <div className="plan-body">
-                <h4>Everything in Starter, plus more automation &amp; insight:</h4>
-                <ul className="ticks">
-                  <li>Advanced Agentic AI screening, ranking and smart shortlisting</li>
-                  <li>Full Agentic AI assessments: technical, aptitude, cognitive and behavioral</li>
-                  <li>Agentic AI video, voice and coding interviews with proctoring</li>
-                  <li>WhatsApp integration and automated follow-ups</li>
-                  <li>Team collaboration, feedback scorecards and approval workflows</li>
-                  <li>Analytics and reporting KPI dashboards</li>
-                  <li>ATS, HRMS and video platform integrations</li>
-                  <li>Higher active job and candidate capacity</li>
-                  <li>Priority technical support</li>
-                </ul>
-              </div>
-              <div className="plan-card-footer">
-                <a className="sk-btn-orange" style={{ width: '100%' }} href="/get-started#book-meeting">
-                  Book a Demo &amp; Trial →
-                </a>
-              </div>
-            </CinematicCard>
-
-            {/* Enterprise Plan */}
-            <CinematicCard className="pricing-plan-card" variant="up" delay={2}>
-              <div className="plan-card-header">
-                <span className="plan-badge">Enterprise Plan</span>
-                <h3>Enterprise</h3>
-                <p className="plan-target">Best for large and global organizations with complex hiring needs.</p>
-                <div className="plan-price">
-                  <strong style={{ fontSize: '2rem' }}>Custom</strong>
-                  <span>tailored to volume</span>
+                <div className="plan-card-footer">
+                  <a
+                    className={plan.isPopular ? 'sk-btn-orange' : plan.priceMonthly === 'Custom' ? 'sk-btn-green' : 'sk-btn-outline-dark'}
+                    style={{ width: '100%' }}
+                    href={plan.ctaHref}
+                  >
+                    {plan.ctaText}
+                  </a>
                 </div>
-                <p className="plan-trial-note">Volume discounts &amp; custom contracts</p>
-              </div>
-              <div className="plan-body">
-                <h4>Everything in Professional, plus scale &amp; control:</h4>
-                <ul className="ticks">
-                  <li>Unlimited high-volume candidate hiring pipeline</li>
-                  <li>Advanced role-based access and custom approval chains</li>
-                  <li>Full immutable audit trails and compliance security controls</li>
-                  <li>Developer REST API access &amp; custom webhooks</li>
-                  <li>Diversity analytics and recruiter productivity leaderboard</li>
-                  <li>Single sign-on (SAML / SSO) and custom data residency</li>
-                  <li>Dedicated account manager &amp; guided rollout</li>
-                  <li>Guaranteed 99.9% uptime SLA</li>
-                </ul>
-              </div>
-              <div className="plan-card-footer">
-                <a className="sk-btn-green" style={{ width: '100%' }} href="#custom-quote">
-                  Contact Sales for Quote
-                </a>
-              </div>
-            </CinematicCard>
+              </CinematicCard>
+            ))}
           </div>
         </div>
       </section>
@@ -239,7 +188,7 @@ export function PricingPage() {
                 </tr>
               </thead>
               <tbody>
-                {comparisonFeatures.map((row) => (
+                {comparisonRows.map((row) => (
                   <tr key={row.feature}>
                     <th scope="row">{row.feature}</th>
                     <td>{row.starter}</td>
@@ -285,7 +234,13 @@ export function PricingPage() {
         </div>
       </section>
 
-      <SkFaq title="Frequently asked billing questions" items={faqs} />
+      <SkFaq
+        title="Frequently asked billing questions"
+        items={faqItems.map((f) => ({
+          q: f.q,
+          a: f.a,
+        }))}
+      />
       <SkCtaBanner />
     </main>
   );

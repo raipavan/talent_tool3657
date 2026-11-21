@@ -1,10 +1,11 @@
 import { useCallback, useEffect, useRef, useState, type KeyboardEvent, type PointerEvent } from 'react';
-import { industries } from '../data/content';
+import { industries as staticIndustries } from '../data/content';
 import { prefersReducedMotion } from '../lib/motion';
 import { loopPeriod, useAutoDrift } from '../lib/useAutoDrift';
 import { Icon } from './Icon';
 import { Reveal } from './Reveal';
 import { SectionHead } from './SectionHead';
+import { useHomeContent } from '../sanity/SanityProvider';
 
 /**
  * Side-scrolling rail that drifts left to right on its own in a seamless loop
@@ -85,6 +86,8 @@ function useRail() {
 }
 
 export function Solutions() {
+  const home = useHomeContent();
+  const industries = home?.industries ?? staticIndustries;
   const rail = useRail();
   const scrollable = rail.thumb < 0.999;
 

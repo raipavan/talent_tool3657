@@ -19,6 +19,34 @@ export const homePageQuery = `*[_type == "home"][0]{
   faqs
 }`;
 
+export const pricingPageQuery = `*[_type == "pricing"][0]{
+  heroTitle,
+  heroSubtitle,
+  plans[]{
+    name,
+    badge,
+    target,
+    priceMonthly,
+    priceAnnual,
+    trialNote,
+    isPopular,
+    featureTitle,
+    features,
+    ctaText,
+    ctaHref
+  },
+  comparisonFeatures[]{
+    feature,
+    starter,
+    pro,
+    ent
+  },
+  faqs[]{
+    q,
+    a
+  }
+}`;
+
 export const navigationQuery = `*[_type == "navigation"][0]{
   navItems[]{
     id,
