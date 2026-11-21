@@ -14,13 +14,22 @@ interface FaqProps {
 
 export function Faq({
   items,
-  eyebrow = 'Questions, answered',
-  title = 'What hiring teams ask *before the trial*',
-  body = "No discovery call required to get an answer. If yours isn't here, send it over — a product specialist replies within one business day.",
-  contactHref = '#contact',
+  eyebrow,
+  title,
+  body,
+  contactHref,
 }: FaqProps) {
   const homeContent = useHomeContent();
+  const sectionCopy = homeContent?.faqSection || {};
   const faqList = items ?? (homeContent?.faqs as FaqItem[]) ?? staticFaqs;
+  const displayEyebrow = eyebrow ?? sectionCopy.eyebrow ?? 'Questions, answered';
+  const displayTitle = title ?? sectionCopy.title ?? 'What hiring teams ask *before the trial*';
+  const displayBody =
+    body ??
+    sectionCopy.body ??
+    "No discovery call required to get an answer. If yours isn't here, send it over — a product specialist replies within one business day.";
+  const displayHref = contactHref ?? sectionCopy.linkHref ?? '#contact';
+  const displayLinkLabel = sectionCopy.linkLabel ?? 'Ask us something else';
   const [openIndex, setOpenIndex] = useState<number | null>(0);
   const baseId = useId();
 
@@ -30,13 +39,13 @@ export function Faq({
         <div className="faq-intro">
           <SectionHead
             variant="left"
-            eyebrow={eyebrow}
-            title={title}
-            body={body}
+            eyebrow={displayEyebrow}
+            title={displayTitle}
+            body={displayBody}
           />
           <Reveal variant="left" delay={1}>
-            <a className="faq-link" href={contactHref}>
-              Ask us something else
+            <a className="faq-link" href={displayHref}>
+              {displayLinkLabel}
               <span aria-hidden="true">→</span>
             </a>
           </Reveal>

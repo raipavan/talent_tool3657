@@ -1,10 +1,13 @@
 services:
   - type: web
     name: talent-tool3657
-    env: static
-    buildCommand: npm run build
-    staticPublishPath: ./dist
-    routes:
-      - type: rewrite
-        source: /*
-        destination: /index.html
+    runtime: node
+    buildCommand: npm install && npm run build
+    startCommand: npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: CMS_ADMIN_USER
+        value: admin
+      - key: CMS_ADMIN_PASSWORD
+        value: admin

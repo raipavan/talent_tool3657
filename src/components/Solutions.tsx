@@ -88,6 +88,7 @@ function useRail() {
 export function Solutions() {
   const home = useHomeContent();
   const industries = home?.industries ?? staticIndustries;
+  const copy = home?.solutionsSection || {};
   const rail = useRail();
   const scrollable = rail.thumb < 0.999;
 
@@ -107,9 +108,12 @@ export function Solutions() {
       <div className="container">
         <div className="rail-head">
           <SectionHead
-            eyebrow="Solutions by industry"
-            title="Built for the way *your sector* hires"
-            body="Compliance rules, licensing checks, seasonal spikes — every industry hires differently. These playbooks ship with the platform, not as a services upsell."
+            eyebrow={copy.eyebrow || 'Solutions by industry'}
+            title={copy.title || 'Built for the way *your sector* hires'}
+            body={
+              copy.body ||
+              'Compliance rules, licensing checks, seasonal spikes — every industry hires differently. These playbooks ship with the platform, not as a services upsell.'
+            }
           />
           {scrollable ? (
             <div className="rail-nav">

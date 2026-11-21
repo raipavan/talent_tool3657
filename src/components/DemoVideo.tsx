@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
-import { demoVideo } from '../data/content';
+import { demoVideo as staticDemoVideo } from '../data/content';
 import { prefersReducedMotion } from '../lib/motion';
+import { useHomeContent } from '../cms/CmsProvider';
 import { Icon } from './Icon';
 
 /** Turns a YouTube or Vimeo link into a muted, autoplaying embed URL; null for a plain video file. */
@@ -21,6 +22,8 @@ function embedUrl(src: string): string | null {
  * motion it waits for the visitor to press play.
  */
 export function DemoVideo() {
+  const home = useHomeContent();
+  const demoVideo = home?.demoVideo ?? staticDemoVideo;
   const boxRef = useRef<HTMLDivElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
   const [started, setStarted] = useState(false);

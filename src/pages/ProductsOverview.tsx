@@ -2,13 +2,14 @@ import { CinematicCard } from '../components/CinematicMotion';
 import { Icon } from '../components/Icon';
 import { ProductMock } from '../components/ProductMock';
 import { SkCtaBanner, SkHero, SkLogoMarquee } from '../components/SeekOutUI';
-import { productPages, productPath } from '../data/products';
-import { usePageOverride } from '../sanity/SanityProvider';
-
-const stages = productPages.filter((product) => product.kind === 'stage');
-const layers = productPages.filter((product) => product.kind === 'layer');
+import { productPath } from '../data/products';
+import { usePageOverride, useProductsContent, useProductsOverviewContent } from '../cms/CmsProvider';
 
 export function ProductsOverview() {
+  const productPages = useProductsContent();
+  const overview = useProductsOverviewContent();
+  const stages = productPages.filter((product) => product.kind === 'stage');
+  const layers = productPages.filter((product) => product.kind === 'layer');
   const override = usePageOverride('/products');
   const title = (override?.headline || override?.title || 'One platform, from requisition to signed offer').replace(/\*/g, '');
   const subtitle = override?.lede || 'Most teams stitch together five disconnected tools to move a candidate from applied to hired. TalentPool365 runs the whole hiring line so the evidence behind every decision travels with the candidate.';
@@ -29,11 +30,7 @@ export function ProductsOverview() {
         subtitle={subtitle}
         primaryCta={primaryCta}
         secondaryCta={secondaryCta}
-        stats={[
-          { value: '1B+', label: 'Profiles & ATS archives' },
-          { value: '9 products', label: 'One candidate record' },
-          { value: '68%', label: 'Faster time-to-hire' },
-        ]}
+        stats={overview.stats}
         image="/assets/pages/hero-platform.jpg"
         imageAlt="TalentPool365 Agentic AI recruitment platform overview illustration"
       />
@@ -44,12 +41,9 @@ export function ProductsOverview() {
       <section className="sk-band sk-band--cream" id="stages">
         <div className="container">
           <div className="sk-section-head">
-            <span className="sk-pill-tag">SEVEN HIRING STAGES</span>
-            <h2 className="sk-serif-h2">Seven products, one unified requisition</h2>
-            <p className="sk-section-sub">
-              Each product runs its stage in the pipeline and passes structured evidence cleanly to the next.
-              Inspect each live workspace preview below.
-            </p>
+            <span className="sk-pill-tag">{overview.stagesTag}</span>
+            <h2 className="sk-serif-h2">{overview.stagesTitle}</h2>
+            <p className="sk-section-sub">{overview.stagesSubtitle}</p>
           </div>
 
           {/* Interactive Stage Jump Bar */}
@@ -126,12 +120,9 @@ export function ProductsOverview() {
       <section className="sk-band sk-band--white" id="layers">
         <div className="container">
           <div className="sk-section-head">
-            <span className="sk-pill-tag">PLATFORM FOUNDATION</span>
-            <h2 className="sk-serif-h2">Two command layers under every stage</h2>
-            <p className="sk-section-sub">
-              Analytics and compliance are built directly into the foundation — monitoring funnel velocity,
-              scoring fairness, and immutable audit logs across every requisition.
-            </p>
+            <span className="sk-pill-tag">{overview.layersTag}</span>
+            <h2 className="sk-serif-h2">{overview.layersTitle}</h2>
+            <p className="sk-section-sub">{overview.layersSubtitle}</p>
           </div>
 
           <div className="sk-grid-2">

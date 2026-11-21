@@ -1,6 +1,10 @@
 import { useState, useEffect } from 'react';
-import { useSanityContent, type PlanModel, type PricingComparisonFeature } from '../sanity/SanityProvider';
-import { productPages } from '../data/products';
+import { useCms, type PlanModel, type PricingComparisonFeature } from '../cms/CmsProvider';
+import { loginCmsBackend, changeCmsPasswordBackend, setAuthToken } from '../cms/api';
+import { HomeSectionEditor } from '../components/cms/HomeSectionEditor';
+import { NavigationEditor } from '../components/cms/NavigationEditor';
+import { PagesContentEditor } from '../components/cms/PagesContentEditor';
+import { BackendSettingsPanel } from '../components/cms/BackendSettingsPanel';
 
 const AUTH_STORAGE_KEY = 'tp365_studio_authenticated';
 const PASSWORD_STORAGE_KEY = 'tp365_studio_password';
@@ -269,19 +273,13 @@ const STATIC_ALL_PAGES: PageItem[] = [
 export function SanityStudioPage() {
   const {
     pricing,
-    home,
-    navigation,
     pageOverrides,
-    isSanityLive,
-    sanityConfig,
+    isBackendLive,
     updatePricing,
-    updateHome,
-    updateNavigation,
     updatePageOverride,
-    updateSanityConfig,
     resetDefaults,
-    pushToSanity,
-  } = useSanityContent();
+  } = useCms();
+  const isSanityLive = isBackendLive;
 
   // Authentication state
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(() => {
@@ -314,7 +312,6 @@ export function SanityStudioPage() {
   // Studio Tabs
   const [activeTab, setActiveTab] = useState<'dashboard' | 'pricing' | 'home' | 'products' | 'navigation' | 'sanity' | 'security'>('dashboard');
   const [saveNotification, setSaveNotification] = useState<string | null>(null);
-  const [syncStatus, setSyncStatus] = useState<{ loading: boolean; msg: string; success?: boolean } | null>(null);
 
   // Dashboard Filters & Search
   const [pageSearchQuery, setPageSearchQuery] = useState('');
@@ -344,11 +341,6 @@ export function SanityStudioPage() {
 
   // Local drafts
   const [pricingDraft, setPricingDraft] = useState(pricing);
-  const [configDraft, setConfigDraft] = useState(sanityConfig);
-  const [homeDraft, setHomeDraft] = useState(home);
-
-  // Selected product in Products tab
-  const [selectedProductSlug, setSelectedProductSlug] = useState<string>(productPages[0]?.slug || 'talent-sourcing');
 
   useEffect(() => {
     setPricingDraft(pricing);
@@ -364,28 +356,47 @@ export function SanityStudioPage() {
     return localStorage.getItem(PASSWORD_STORAGE_KEY) || 'admin';
   };
 
-  // Login handler
-  const handleLogin = (e?: React.FormEvent) => {
+  // Login handler (authenticates against our self-hosted Node CMS Backend first, with local fallback)
+  const handleLogin = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
     setAuthError(null);
     setAuthSuccess(null);
 
-    const storedPass = localStorage.getItem(PASSWORD_STORAGE_KEY);
-    const validPasswords = storedPass ? [storedPass] : ['admin', 'admin123', 'talentpool365'];
-
-    if (!usernameInput.trim()) {
+    const user = usernameInput.trim();
+    const pass = passwordInput.trim();
+    if (!user) {
       setAuthError('Please enter a username or email.');
       return;
     }
 
-    if (validPasswords.includes(passwordInput.trim())) {
+    const backendRes = await loginCmsBackend(user, pass);
+    if (backendRes.ok && backendRes.token) {
+      setAuthToken(backendRes.token, rememberMe);
       try {
-        localStorage.setItem(USERNAME_STORAGE_KEY, usernameInput.trim());
-        if (rememberMe) {
-          localStorage.setItem(AUTH_STORAGE_KEY, 'true');
-        } else {
-          sessionStorage.setItem(AUTH_STORAGE_KEY, 'true');
-        }
+        localStorage.setItem(USERNAME_STORAGE_KEY, backendRes.username || user);
+        if (rememberMe) localStorage.setItem(AUTH_STORAGE_KEY, 'true');
+        else sessionStorage.setItem(AUTH_STORAGE_KEY, 'true');
+      } catch {
+        // ignore
+      }
+      setIsAuthenticated(true);
+      setAuthError(null);
+      setPasswordInput('');
+      return;
+    }
+
+    if (!backendRes.offline) {
+      setAuthError(backendRes.error || 'Incorrect username or password. Default: admin / admin');
+      return;
+    }
+
+    const storedPass = localStorage.getItem(PASSWORD_STORAGE_KEY);
+    const validPasswords = storedPass ? [storedPass] : ['admin', 'admin123', 'talentpool365'];
+    if (validPasswords.includes(pass)) {
+      try {
+        localStorage.setItem(USERNAME_STORAGE_KEY, user);
+        if (rememberMe) localStorage.setItem(AUTH_STORAGE_KEY, 'true');
+        else sessionStorage.setItem(AUTH_STORAGE_KEY, 'true');
       } catch {
         // ignore
       }
@@ -398,7 +409,11 @@ export function SanityStudioPage() {
   };
 
   // Quick 1-click test login
-  const handleQuickLogin = () => {
+  const handleQuickLogin = async () => {
+    const backendRes = await loginCmsBackend('admin', 'admin');
+    if (backendRes.ok && backendRes.token) {
+      setAuthToken(backendRes.token, true);
+    }
     try {
       localStorage.setItem(USERNAME_STORAGE_KEY, 'admin');
       localStorage.setItem(AUTH_STORAGE_KEY, 'true');
@@ -411,6 +426,7 @@ export function SanityStudioPage() {
 
   // Logout handler
   const handleLogout = () => {
+    setAuthToken('');
     try {
       localStorage.removeItem(AUTH_STORAGE_KEY);
       sessionStorage.removeItem(AUTH_STORAGE_KEY);
@@ -423,17 +439,10 @@ export function SanityStudioPage() {
     notify('🚪 You have successfully signed out of Studio.');
   };
 
-  // Change password handler
-  const handleChangePassword = (e: React.FormEvent) => {
+  // Change password handler (updates server auth store + local fallback)
+  const handleChangePassword = async (e: React.FormEvent) => {
     e.preventDefault();
     setSecurityMessage(null);
-
-    const currentPass = getStoredPassword();
-
-    if (currentPasswordInput && currentPasswordInput !== currentPass && currentPass !== 'admin') {
-      setSecurityMessage({ text: 'Current password does not match.', success: false });
-      return;
-    }
 
     if (newPassword.length < 4) {
       setSecurityMessage({ text: 'New password must be at least 4 characters long.', success: false });
@@ -445,19 +454,41 @@ export function SanityStudioPage() {
       return;
     }
 
-    try {
-      localStorage.setItem(PASSWORD_STORAGE_KEY, newPassword);
-      setSecurityMessage({ text: '✅ Password successfully changed! Remember your new password.', success: true });
+    const currentPass = currentPasswordInput || getStoredPassword();
+    const backendRes = await changeCmsPasswordBackend(currentPass, newPassword);
+    if (backendRes.ok) {
+      if (backendRes.token) setAuthToken(backendRes.token, true);
+      try {
+        localStorage.setItem(PASSWORD_STORAGE_KEY, newPassword);
+      } catch {
+        // ignore
+      }
+      setSecurityMessage({ text: '✅ Password successfully updated on your CMS Backend!', success: true });
       setCurrentPasswordInput('');
       setNewPassword('');
       setConfirmPassword('');
-      notify('🔑 Studio password successfully changed!');
+      notify('🔑 CMS Backend password updated!');
       setTimeout(() => {
         setIsPasswordModalOpen(false);
         setSecurityMessage(null);
       }, 2000);
+      return;
+    }
+
+    if (!backendRes.offline) {
+      setSecurityMessage({ text: backendRes.error || 'Current password does not match.', success: false });
+      return;
+    }
+
+    try {
+      localStorage.setItem(PASSWORD_STORAGE_KEY, newPassword);
+      setSecurityMessage({ text: '✅ Password saved locally (backend offline).', success: true });
+      setCurrentPasswordInput('');
+      setNewPassword('');
+      setConfirmPassword('');
+      notify('🔑 Studio password successfully changed!');
     } catch {
-      setSecurityMessage({ text: 'Could not save new password to browser storage.', success: false });
+      setSecurityMessage({ text: 'Could not save new password.', success: false });
     }
   };
 
@@ -530,24 +561,6 @@ export function SanityStudioPage() {
   const handleSavePricing = () => {
     updatePricing(pricingDraft);
     notify('✅ Pricing changes saved! The whole website is updated immediately.');
-  };
-
-  const handleSaveHome = () => {
-    updateHome(homeDraft);
-    notify('✅ Homepage changes saved! Visit the home page to see them live.');
-  };
-
-  const handleSaveConfig = () => {
-    updateSanityConfig(configDraft);
-    notify('✅ Sanity settings saved.');
-  };
-
-  const handlePushToCloud = async () => {
-    setSyncStatus({ loading: true, msg: 'Pushing content to Sanity Cloud dataset...' });
-    updateSanityConfig(configDraft);
-    updatePricing(pricingDraft);
-    const res = await pushToSanity();
-    setSyncStatus({ loading: false, msg: res.message, success: res.success });
   };
 
   // Plan editing helper
@@ -647,9 +660,6 @@ export function SanityStudioPage() {
       page.description.toLowerCase().includes(pageSearchQuery.toLowerCase());
     return matchesCategory && matchesSearch;
   });
-
-  // Current product selected in Products tab
-  const currentProduct = productPages.find((p) => p.slug === selectedProductSlug) || productPages[0];
 
   // ==========================================
   // 1. IF NOT AUTHENTICATED: SHOW SIGN IN FORM
@@ -1445,7 +1455,6 @@ export function SanityStudioPage() {
               if (confirm('Reset all website content back to factory defaults?')) {
                 resetDefaults();
                 setPricingDraft(pricing);
-                setHomeDraft(home);
                 notify('Content reset to factory defaults.');
               }
             }}
@@ -1594,7 +1603,7 @@ export function SanityStudioPage() {
             Dual-Mode Active
           </div>
           <span style={{ fontSize: '0.78rem', color: '#059669', fontWeight: 600 }}>
-            Real-time Browser + Sanity
+            Self-Hosted CMS Backend
           </span>
         </div>
       </div>
@@ -1618,6 +1627,54 @@ export function SanityStudioPage() {
           📊 Dashboard & All 29 Pages
         </button>
         <button
+          onClick={() => setActiveTab('home')}
+          style={{
+            padding: '12px 20px',
+            fontWeight: 700,
+            fontSize: '0.95rem',
+            background: 'transparent',
+            border: 'none',
+            borderBottom: activeTab === 'home' ? '3px solid var(--color-primary)' : '3px solid transparent',
+            color: activeTab === 'home' ? 'var(--color-primary)' : 'var(--color-text-muted)',
+            cursor: 'pointer',
+            whiteSpace: 'nowrap',
+          }}
+        >
+          🏠 Homepage (16 Sections)
+        </button>
+        <button
+          onClick={() => setActiveTab('products')}
+          style={{
+            padding: '12px 20px',
+            fontWeight: 700,
+            fontSize: '0.95rem',
+            background: 'transparent',
+            border: 'none',
+            borderBottom: activeTab === 'products' ? '3px solid var(--color-primary)' : '3px solid transparent',
+            color: activeTab === 'products' ? 'var(--color-primary)' : 'var(--color-text-muted)',
+            cursor: 'pointer',
+            whiteSpace: 'nowrap',
+          }}
+        >
+          📄 All Inner Pages
+        </button>
+        <button
+          onClick={() => setActiveTab('navigation')}
+          style={{
+            padding: '12px 20px',
+            fontWeight: 700,
+            fontSize: '0.95rem',
+            background: 'transparent',
+            border: 'none',
+            borderBottom: activeTab === 'navigation' ? '3px solid var(--color-primary)' : '3px solid transparent',
+            color: activeTab === 'navigation' ? 'var(--color-primary)' : 'var(--color-text-muted)',
+            cursor: 'pointer',
+            whiteSpace: 'nowrap',
+          }}
+        >
+          🧭 Header & Footer
+        </button>
+        <button
           onClick={() => setActiveTab('pricing')}
           style={{
             padding: '12px 20px',
@@ -1634,54 +1691,6 @@ export function SanityStudioPage() {
           💰 Pricing & Plans
         </button>
         <button
-          onClick={() => setActiveTab('home')}
-          style={{
-            padding: '12px 20px',
-            fontWeight: 700,
-            fontSize: '0.95rem',
-            background: 'transparent',
-            border: 'none',
-            borderBottom: activeTab === 'home' ? '3px solid var(--color-primary)' : '3px solid transparent',
-            color: activeTab === 'home' ? 'var(--color-primary)' : 'var(--color-text-muted)',
-            cursor: 'pointer',
-            whiteSpace: 'nowrap',
-          }}
-        >
-          🏠 Homepage & Hero
-        </button>
-        <button
-          onClick={() => setActiveTab('products')}
-          style={{
-            padding: '12px 20px',
-            fontWeight: 700,
-            fontSize: '0.95rem',
-            background: 'transparent',
-            border: 'none',
-            borderBottom: activeTab === 'products' ? '3px solid var(--color-primary)' : '3px solid transparent',
-            color: activeTab === 'products' ? 'var(--color-primary)' : 'var(--color-text-muted)',
-            cursor: 'pointer',
-            whiteSpace: 'nowrap',
-          }}
-        >
-          🚀 Products Catalog ({productPages.length})
-        </button>
-        <button
-          onClick={() => setActiveTab('navigation')}
-          style={{
-            padding: '12px 20px',
-            fontWeight: 700,
-            fontSize: '0.95rem',
-            background: 'transparent',
-            border: 'none',
-            borderBottom: activeTab === 'navigation' ? '3px solid var(--color-primary)' : '3px solid transparent',
-            color: activeTab === 'navigation' ? 'var(--color-primary)' : 'var(--color-text-muted)',
-            cursor: 'pointer',
-            whiteSpace: 'nowrap',
-          }}
-        >
-          🧭 Navigation & Footer
-        </button>
-        <button
           onClick={() => setActiveTab('sanity')}
           style={{
             padding: '12px 20px',
@@ -1695,7 +1704,7 @@ export function SanityStudioPage() {
             whiteSpace: 'nowrap',
           }}
         >
-          ☁️ Sanity Cloud & 404 Fix
+          🚀 Backend & Backup
         </button>
         <button
           onClick={() => setActiveTab('security')}
@@ -2296,394 +2305,36 @@ export function SanityStudioPage() {
       )}
 
       {/* ==================================================== */}
-      {/* TAB 2: HOMEPAGE & HERO */}
+      {/* TAB 2: HOMEPAGE (ALL 16 SECTIONS) */}
       {/* ==================================================== */}
       {activeTab === 'home' && (
         <div style={{ background: '#fff', padding: 28, borderRadius: 'var(--radius-lg)', border: '1px solid var(--color-border)' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
-            <div>
-              <h2 style={{ fontSize: '1.3rem', fontWeight: 700, color: 'var(--color-primary)' }}>Homepage Content & Hero</h2>
-              <p style={{ color: 'var(--color-text-muted)', fontSize: '0.9rem' }}>Edit the main headline, subtitle, stats, and CTAs.</p>
-            </div>
-            <button
-              onClick={handleSaveHome}
-              style={{ padding: '10px 24px', background: 'var(--color-primary)', color: '#fff', borderRadius: 'var(--radius)', border: 'none', fontWeight: 700, cursor: 'pointer' }}
-            >
-              💾 Save Homepage Content
-            </button>
-          </div>
-
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: 16 }}>
-            <div>
-              <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, marginBottom: 6 }}>Hero Headline</label>
-              <input
-                type="text"
-                value={homeDraft.hero?.heading || 'Hire top talent 3x faster with autonomous AI agents'}
-                onChange={(e) =>
-                  setHomeDraft({
-                    ...homeDraft,
-                    hero: { ...homeDraft.hero, heading: e.target.value },
-                  })
-                }
-                style={{ width: '100%', padding: '10px 14px', borderRadius: 8, border: '1px solid var(--color-border)', fontSize: '1rem', fontWeight: 600, boxSizing: 'border-box' }}
-              />
-            </div>
-
-            <div>
-              <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, marginBottom: 6 }}>Hero Description Subtext</label>
-              <textarea
-                rows={3}
-                value={homeDraft.hero?.subheading || 'TalentPool365 automates sourcing, resume parsing, multi-stage assessments, and video interviews — end-to-end on one intelligent recruitment platform.'}
-                onChange={(e) =>
-                  setHomeDraft({
-                    ...homeDraft,
-                    hero: { ...homeDraft.hero, subheading: e.target.value },
-                  })
-                }
-                style={{ width: '100%', padding: '10px 14px', borderRadius: 8, border: '1px solid var(--color-border)', fontSize: '0.92rem', boxSizing: 'border-box' }}
-              />
-            </div>
-
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
-              <div>
-                <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, marginBottom: 6 }}>Primary CTA Button Text</label>
-                <input
-                  type="text"
-                  value={homeDraft.hero?.primaryCta?.text || 'Start Free Trial'}
-                  onChange={(e) =>
-                    setHomeDraft({
-                      ...homeDraft,
-                      hero: { ...homeDraft.hero, primaryCta: { ...homeDraft.hero?.primaryCta, text: e.target.value } },
-                    })
-                  }
-                  style={{ width: '100%', padding: '10px 14px', borderRadius: 8, border: '1px solid var(--color-border)', boxSizing: 'border-box' }}
-                />
-              </div>
-              <div>
-                <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, marginBottom: 6 }}>Secondary CTA Button Text</label>
-                <input
-                  type="text"
-                  value={homeDraft.hero?.secondaryCta?.text || 'Book a Demo'}
-                  onChange={(e) =>
-                    setHomeDraft({
-                      ...homeDraft,
-                      hero: { ...homeDraft.hero, secondaryCta: { ...homeDraft.hero?.secondaryCta, text: e.target.value } },
-                    })
-                  }
-                  style={{ width: '100%', padding: '10px 14px', borderRadius: 8, border: '1px solid var(--color-border)', boxSizing: 'border-box' }}
-                />
-              </div>
-            </div>
-          </div>
+          <HomeSectionEditor />
         </div>
       )}
 
       {/* ==================================================== */}
-      {/* TAB 3: PRODUCTS CATALOG (ALL 9 PRODUCTS) */}
+      {/* TAB 3: ALL INNER PAGES FULL CONTENT */}
       {/* ==================================================== */}
       {activeTab === 'products' && (
         <div style={{ background: '#fff', padding: 28, borderRadius: 'var(--radius-lg)', border: '1px solid var(--color-border)' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20, flexWrap: 'wrap', gap: 16 }}>
-            <div>
-              <h2 style={{ fontSize: '1.3rem', fontWeight: 800, color: 'var(--color-primary)' }}>
-                Products Catalog Manager ({productPages.length} Products)
-              </h2>
-              <p style={{ color: 'var(--color-text-muted)', fontSize: '0.9rem' }}>
-                Select and customize headlines, summaries, and capability points for any product page.
-              </p>
-            </div>
-            {currentProduct && (
-              <a
-                href={`/products/${currentProduct.slug}`}
-                target="_blank"
-                rel="noreferrer"
-                style={{
-                  padding: '9px 18px',
-                  borderRadius: 'var(--radius)',
-                  border: '1px solid var(--color-border)',
-                  background: '#fff',
-                  fontSize: '0.88rem',
-                  fontWeight: 600,
-                  color: 'var(--color-primary)',
-                  textDecoration: 'none',
-                }}
-              >
-                👁️ View Live Product Page
-              </a>
-            )}
-          </div>
-
-          {/* Product Select Tabs */}
-          <div style={{ display: 'flex', gap: 8, overflowX: 'auto', marginBottom: 24, paddingBottom: 6 }}>
-            {productPages.map((prod) => (
-              <button
-                key={prod.slug}
-                onClick={() => setSelectedProductSlug(prod.slug)}
-                style={{
-                  padding: '8px 16px',
-                  borderRadius: 8,
-                  border: selectedProductSlug === prod.slug ? '2px solid var(--color-primary)' : '1px solid var(--color-border)',
-                  background: selectedProductSlug === prod.slug ? 'var(--color-outline-fill)' : '#fff',
-                  fontWeight: selectedProductSlug === prod.slug ? 800 : 600,
-                  color: 'var(--color-primary)',
-                  fontSize: '0.85rem',
-                  cursor: 'pointer',
-                  whiteSpace: 'nowrap',
-                }}
-              >
-                {prod.title}
-              </button>
-            ))}
-          </div>
-
-          {/* Current Product Content */}
-          {currentProduct && (
-            <div style={{ background: 'var(--color-bg-light)', padding: 24, borderRadius: 'var(--radius)', border: '1px solid var(--color-border)' }}>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginBottom: 16 }}>
-                <div>
-                  <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 700, marginBottom: 6 }}>Product Title</label>
-                  <input
-                    type="text"
-                    defaultValue={currentProduct.title}
-                    style={{ width: '100%', padding: '10px 12px', borderRadius: 6, border: '1px solid var(--color-border)', fontWeight: 700, boxSizing: 'border-box' }}
-                  />
-                </div>
-                <div>
-                  <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 700, marginBottom: 6 }}>URL Path</label>
-                  <input
-                    type="text"
-                    disabled
-                    value={`/products/${currentProduct.slug}`}
-                    style={{ width: '100%', padding: '10px 12px', borderRadius: 6, border: '1px solid var(--color-border)', background: '#F3F4F6', color: '#6B7280', boxSizing: 'border-box' }}
-                  />
-                </div>
-              </div>
-
-              <div style={{ marginBottom: 16 }}>
-                <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 700, marginBottom: 6 }}>Headline</label>
-                <input
-                  type="text"
-                  defaultValue={currentProduct.headline}
-                  style={{ width: '100%', padding: '10px 12px', borderRadius: 6, border: '1px solid var(--color-border)', fontSize: '0.95rem', boxSizing: 'border-box' }}
-                />
-              </div>
-
-              <div style={{ marginBottom: 16 }}>
-                <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 700, marginBottom: 6 }}>Summary Lede</label>
-                <textarea
-                  rows={2}
-                  defaultValue={currentProduct.lede}
-                  style={{ width: '100%', padding: '10px 12px', borderRadius: 6, border: '1px solid var(--color-border)', fontSize: '0.9rem', boxSizing: 'border-box' }}
-                />
-              </div>
-
-              {/* Capabilities List */}
-              <h4 style={{ fontSize: '0.95rem', fontWeight: 700, color: 'var(--color-primary)', marginTop: 20, marginBottom: 10 }}>
-                Capabilities & Feature Modules ({currentProduct.capabilities?.length || 0})
-              </h4>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: 12 }}>
-                {currentProduct.capabilities?.map((cap, cIdx) => (
-                  <div key={cIdx} style={{ background: '#fff', padding: 14, borderRadius: 8, border: '1px solid var(--color-border)' }}>
-                    <div style={{ fontWeight: 700, fontSize: '0.9rem', color: 'var(--color-text)', marginBottom: 4 }}>
-                      {cap.title}
-                    </div>
-                    <div style={{ fontSize: '0.8rem', color: 'var(--color-text-muted)' }}>
-                      {cap.body}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
+          <PagesContentEditor />
         </div>
       )}
 
       {/* ==================================================== */}
-      {/* TAB 4: NAVIGATION & FOOTER */}
+      {/* TAB 4: HEADER & FOOTER */}
       {/* ==================================================== */}
       {activeTab === 'navigation' && (
         <div style={{ background: '#fff', padding: 28, borderRadius: 'var(--radius-lg)', border: '1px solid var(--color-border)' }}>
-          <h2 style={{ fontSize: '1.3rem', fontWeight: 700, color: 'var(--color-primary)', marginBottom: 8 }}>Navigation & Global Links</h2>
-          <p style={{ color: 'var(--color-text-muted)', fontSize: '0.9rem', marginBottom: 20 }}>
-            Configure header and footer links.
-          </p>
-
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 20 }}>
-            <div style={{ background: 'var(--color-bg-light)', padding: 18, borderRadius: 8, border: '1px solid var(--color-border)' }}>
-              <h3 style={{ fontSize: '1.05rem', fontWeight: 700, marginBottom: 4 }}>Header Sign In Button</h3>
-              <p style={{ fontSize: '0.8rem', color: 'var(--color-text-muted)', marginBottom: 12 }}>
-                Primary action button in the top navigation bar. Enter any external URL (e.g. https://app.talentpool365.com/login) or internal path.
-              </p>
-              <div style={{ marginBottom: 10 }}>
-                <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, marginBottom: 4 }}>Button Label</label>
-                <input
-                  type="text"
-                  value={navigation?.header?.signIn?.label ?? 'Sign In'}
-                  onChange={(e) => {
-                    const next = {
-                      ...navigation,
-                      header: {
-                        ...navigation?.header,
-                        signIn: { ...navigation?.header?.signIn, label: e.target.value },
-                      },
-                    };
-                    updateNavigation(next);
-                  }}
-                  placeholder="Sign In"
-                  style={{ width: '100%', padding: '8px 12px', borderRadius: 6, border: '1px solid var(--color-border)', boxSizing: 'border-box' }}
-                />
-              </div>
-              <div>
-                <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, marginBottom: 4 }}>Sign In Button URL</label>
-                <input
-                  type="url"
-                  value={navigation?.header?.signIn?.href ?? '/get-started'}
-                  onChange={(e) => {
-                    const next = {
-                      ...navigation,
-                      header: {
-                        ...navigation?.header,
-                        signIn: { ...navigation?.header?.signIn, href: e.target.value },
-                      },
-                    };
-                    updateNavigation(next);
-                  }}
-                  placeholder="https://app.talentpool365.com/login"
-                  style={{ width: '100%', padding: '8px 12px', borderRadius: 6, border: '1px solid var(--color-border)', boxSizing: 'border-box' }}
-                />
-              </div>
-            </div>
-
-            <div style={{ background: 'var(--color-bg-light)', padding: 18, borderRadius: 8, border: '1px solid var(--color-border)' }}>
-              <h3 style={{ fontSize: '1.05rem', fontWeight: 700, marginBottom: 12 }}>Footer Note & Slogan</h3>
-              <div>
-                <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, marginBottom: 4 }}>Slogan / Mission</label>
-                <textarea
-                  rows={3}
-                  value={navigation?.footer?.slogan ?? 'Empowering recruitment teams with Agentic AI to source, screen, and hire candidates with unprecedented speed and precision.'}
-                  onChange={(e) => {
-                    const next = { ...navigation, footer: { ...navigation?.footer, slogan: e.target.value } };
-                    updateNavigation(next);
-                  }}
-                  style={{ width: '100%', padding: '8px 12px', borderRadius: 6, border: '1px solid var(--color-border)', fontSize: '0.88rem', boxSizing: 'border-box' }}
-                />
-              </div>
-            </div>
-          </div>
+          <NavigationEditor />
         </div>
       )}
 
       {/* ==================================================== */}
-      {/* TAB 5: SANITY CLOUD & 404 EXPLANATION */}
+      {/* TAB 5: SELF-HOSTED CMS BACKEND & BACKUP */}
       {/* ==================================================== */}
-      {activeTab === 'sanity' && (
-        <div style={{ background: '#fff', padding: 28, borderRadius: 'var(--radius-lg)', border: '1px solid var(--color-border)' }}>
-          <h2 style={{ fontSize: '1.3rem', fontWeight: 700, color: 'var(--color-primary)', marginBottom: 8 }}>
-            Sanity Cloud Integration & 404 Resolution
-          </h2>
-
-          <div
-            style={{
-              background: '#EFF6FF',
-              border: '1px solid #BFDBFE',
-              borderRadius: 8,
-              padding: '16px 20px',
-              marginBottom: 24,
-              color: '#1E40AF',
-              fontSize: '0.92rem',
-              lineHeight: 1.6,
-            }}
-          >
-            <strong>Why did you see <code>{`{"statusCode":404,"error":"Not Found","message":"Studio not found"}`}</code>?</strong>
-            <p style={{ marginTop: 6 }}>
-              When a project is created on Sanity Cloud (<code>sanity.io/manage</code>), Sanity provides your cloud dataset and REST/GROQ API endpoints instantly. However, the custom web studio URL (e.g. <code>https://&lt;project&gt;.sanity.studio</code>) only activates after running <code>npx sanity deploy</code> with a chosen hostname.
-            </p>
-            <p style={{ marginTop: 6 }}>
-              <strong>Good news:</strong> You do NOT need to wait or deploy to Sanity Cloud! This integrated Studio right here is fully wired to your application. It lets you edit all pricing and content immediately with real-time browser preview, and syncs directly to your Sanity Cloud dataset whenever you paste your Project ID and API Token below.
-            </p>
-          </div>
-
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 16, marginBottom: 20 }}>
-            <div>
-              <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, marginBottom: 6 }}>Sanity Project ID</label>
-              <input
-                type="text"
-                value={configDraft.projectId}
-                onChange={(e) => setConfigDraft({ ...configDraft, projectId: e.target.value })}
-                placeholder="e.g. v6qf71nm (from sanity.io/manage)"
-                style={{ width: '100%', padding: '10px 14px', borderRadius: 8, border: '1px solid var(--color-border)', fontSize: '0.95rem', boxSizing: 'border-box' }}
-              />
-            </div>
-            <div>
-              <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, marginBottom: 6 }}>Dataset</label>
-              <input
-                type="text"
-                value={configDraft.dataset}
-                onChange={(e) => setConfigDraft({ ...configDraft, dataset: e.target.value })}
-                placeholder="production"
-                style={{ width: '100%', padding: '10px 14px', borderRadius: 8, border: '1px solid var(--color-border)', fontSize: '0.95rem', boxSizing: 'border-box' }}
-              />
-            </div>
-          </div>
-
-          <div style={{ marginBottom: 20 }}>
-            <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, marginBottom: 6 }}>
-              Sanity Write API Token (Optional — required only for pushing mutations to Sanity Cloud)
-            </label>
-            <input
-              type="password"
-              value={configDraft.token || ''}
-              onChange={(e) => setConfigDraft({ ...configDraft, token: e.target.value })}
-              placeholder="sk..."
-              style={{ width: '100%', padding: '10px 14px', borderRadius: 8, border: '1px solid var(--color-border)', fontSize: '0.95rem', boxSizing: 'border-box' }}
-            />
-            <span style={{ fontSize: '0.78rem', color: 'var(--color-text-muted)', marginTop: 4, display: 'block' }}>
-              Create a token with Editor permissions at <code>sanity.io/manage &gt; [Your Project] &gt; API &gt; Tokens</code>.
-            </span>
-          </div>
-
-          <div style={{ display: 'flex', gap: 12, alignItems: 'center', marginBottom: 20, flexWrap: 'wrap' }}>
-            <button
-              onClick={handleSaveConfig}
-              style={{ padding: '10px 20px', background: 'var(--color-secondary)', color: '#fff', borderRadius: 'var(--radius)', border: 'none', fontWeight: 600, cursor: 'pointer' }}
-            >
-              Save Cloud Settings
-            </button>
-            <button
-              onClick={handlePushToCloud}
-              disabled={syncStatus?.loading}
-              style={{
-                padding: '10px 24px',
-                background: 'var(--color-primary)',
-                color: '#fff',
-                borderRadius: 'var(--radius)',
-                border: 'none',
-                fontWeight: 700,
-                cursor: 'pointer',
-                opacity: syncStatus?.loading ? 0.7 : 1,
-              }}
-            >
-              {syncStatus?.loading ? 'Pushing to Sanity Cloud...' : '⚡ Push All Changes to Sanity Cloud Dataset'}
-            </button>
-          </div>
-
-          {syncStatus && (
-            <div
-              style={{
-                padding: '12px 16px',
-                borderRadius: 8,
-                background: syncStatus.success ? '#DCFCE7' : '#FEF3C7',
-                border: `1px solid ${syncStatus.success ? '#86EFAC' : '#FCD34D'}`,
-                color: syncStatus.success ? '#166534' : '#92400E',
-                fontSize: '0.9rem',
-                fontWeight: 600,
-              }}
-            >
-              {syncStatus.msg}
-            </div>
-          )}
-        </div>
-      )}
+      {activeTab === 'sanity' && <BackendSettingsPanel />}
 
       {/* ==================================================== */}
       {/* TAB 6: STUDIO SECURITY */}

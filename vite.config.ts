@@ -1,9 +1,7 @@
 import { defineConfig, type Plugin } from 'vite';
 import react from '@vitejs/plugin-react';
 
-/* The content manager is a static page in public/admin. Hosts serve
-   /admin/ as /admin/index.html on their own; the dev and preview servers
-   need telling, or the app's own "page not found" would answer instead. */
+/* Redirect /admin cleanly to /admin/index.html during dev/preview. */
 const adminIndex = (req: object, _res: unknown, next: () => void) => {
   const request = req as { url?: string };
   if (request.url === '/admin' || request.url === '/admin/') request.url = '/admin/index.html';
@@ -21,6 +19,18 @@ const contentManager = (): Plugin => ({
 
 export default defineConfig({
   plugins: [react(), contentManager()],
+  server: {
+    proxy: {
+      '/api': {
+        target: 'http://localhost:4050',
+        changeOrigin: true,
+      },
+      '/uploads': {
+        target: 'http://localhost:4050',
+        changeOrigin: true,
+      },
+    },
+  },
   build: {
     assetsDir: 'bundle',
   },

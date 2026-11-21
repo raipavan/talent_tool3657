@@ -1,8 +1,9 @@
 import { useEffect, useRef, useState } from 'react';
-import { agents } from '../data/content';
+import { agents as staticAgents, type Agent } from '../data/content';
 import { accent } from '../lib/accent';
 import { box, check, drawBot } from '../lib/bot';
 import { prefersReducedMotion } from '../lib/motion';
+import { useHomeContent } from '../cms/CmsProvider';
 
 /* ------------------------------------------------------------------
    Scroll-driven scene. The section is several screens tall and its
@@ -15,7 +16,7 @@ import { prefersReducedMotion } from '../lib/motion';
    page is still.
    ------------------------------------------------------------------ */
 
-const STAGES = agents.length;
+const STAGES = staticAgents.length;
 const HOLD = 0.35; // extra scroll at the end so the last frame can be read
 const CLUSTER = [1, 0.85, 0.55, 0.38, 0];
 
@@ -51,11 +52,11 @@ function seeded(seed: number) {
   };
 }
 
-function makeParticles(total: number): Particle[] {
+function makeParticles(total: number, agentList: Agent[]): Particle[] {
   const random = seeded(365);
-  const top = agents[0].count;
+  const top = Math.max(1, agentList[0]?.count || 1);
   // How many particles get at least as far as each station.
-  const reachAtLeast = agents.map((agent, k) =>
+  const reachAtLeast = agentList.map((agent, k) =>
     k === 0 ? total : Math.max(STAGES - k, Math.round((agent.count / top) * total)),
   );
 
@@ -363,6 +364,9 @@ function drawTask(ctx: Ctx, stage: number, x: number, y: number, u: number, time
 }
 
 export function Agents() {
+  const home = useHomeContent();
+  const agents = (home?.agents?.length ? home.agents : staticAgents) as Agent[];
+  const copy = home?.agentsSection || {};
   const sectionRef = useRef<HTMLElement>(null);
   const stageRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -406,7 +410,7 @@ export function Agents() {
       canvas.height = Math.round(height * dpr);
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
       const total = width < 700 ? 150 : 300;
-      if (particles.length !== total) particles = makeParticles(total);
+      if (particles.length !== total) particles = makeParticles(total, agents);
     };
 
     const target = () => {
@@ -658,16 +662,16 @@ export function Agents() {
       <div className="agents-pin">
         <div className="container agents-head">
           <div>
-            <h2>{accent('Five *Agentic AI agents* work every requisition')}</h2>
+            <h2>{accent(copy.title || 'Five *Agentic AI Agents* in Our AI Recruitment Tools Work Every Requisition')}</h2>
             <p className="agents-sub">
-              Each one finishes its part and hands the candidates on. Your recruiters step in where
-              judgment matters.
+              {copy.subtitle ||
+                'Each one finishes its part and hands the candidates on. Your recruiters step in where judgment matters.'}
             </p>
           </div>
 
           <ol className="agents-captions">
             {agents.map((agent, k) => (
-              <li key={agent.name} className={k === current ? 'is-current' : undefined}>
+              <li key={`${agent.name}-${k}`} className={k === current ? 'is-current' : undefined}>
                 <h3>{agent.name}</h3>
                 <p>{agent.body}</p>
                 <p className="agents-result">
@@ -684,7 +688,7 @@ export function Agents() {
           <ul className="agents-stations">
             {agents.map((agent, k) => (
               <li
-                key={agent.station}
+                key={`${agent.station}-${k}`}
                 ref={(node) => {
                   stationRefs.current[k] = node;
                 }}
@@ -705,10 +709,10 @@ export function Agents() {
             ))}
           </ul>
 
-          <p className="agents-pool">Talent pool: every other profile stays warm for the next role</p>
+          <p className="agents-pool">{copy.poolLabel || 'Talent pool: every other profile stays warm for the next role'}</p>
           <p className={`agents-hint${started ? ' is-hidden' : ''}`} aria-hidden="true">
             <span />
-            Scroll to run the requisition
+            {copy.scrollHint || 'Scroll to run the requisition'}
           </p>
         </div>
       </div>

@@ -3,16 +3,10 @@ import { Faq } from '../components/Faq';
 import { LeadForm } from '../components/LeadForm';
 import { SkCtaBanner, SkHero, SkVectorArt } from '../components/SeekOutUI';
 import { SubNav } from '../components/SubNav';
-import { usePageOverride } from '../sanity/SanityProvider';
-
-const supportQuestions = [
-  { question: 'I cannot access my workspace. What should I check?', answer: 'Confirm that you are using your organization’s workspace address and the email your administrator invited. If your organization uses single sign-on, try that sign-in option. Contact your workspace administrator or support if access is still blocked; never send your password.' },
-  { question: 'A candidate is having trouble with an interview.', answer: 'Ask for the stage, approximate time and the error message, without sharing interview answers or unnecessary personal data. Check browser permissions and connection quality. If the issue affects accessibility or time limits, offer an alternative through your hiring team.' },
-  { question: 'How should I report a data or permissions issue?', answer: 'Contact support with your organization, the affected workflow and a description of the unexpected access. Do not include candidate records, credentials or access tokens in email. Ask for a secure channel before sharing sensitive evidence.' },
-  { question: 'Where do I find my support response times?', answer: 'Your signed agreement defines coverage, severity levels and response targets. Ask your account team for the applicable support schedule rather than relying on a general website promise.' },
-];
+import { usePageOverride, useSupportContent } from '../cms/CmsProvider';
 
 export function SupportPage() {
+  const support = useSupportContent();
   const override = usePageOverride('/support');
   const title = (override?.headline || override?.title || 'A person on your side').replace(/\*/g, '');
   const subtitle = override?.lede || 'Find practical workflow guidance, prepare a support request, or plan onboarding training for your recruiting team.';
@@ -51,63 +45,42 @@ export function SupportPage() {
       <section className="sk-band sk-band--cream" id="help-center">
         <div className="container">
           <div className="sk-section-head">
-            <span className="sk-pill-tag">HELP CENTER</span>
-            <h2 className="sk-serif-h2">Let&apos;s find your next step</h2>
+            <span className="sk-pill-tag">{support.helpCenterTag}</span>
+            <h2 className="sk-serif-h2">{support.helpCenterTitle}</h2>
           </div>
 
           <div className="sk-grid-3">
-            <CinematicCard className="sup-desk-card" variant="up" delay={0} id="documentation">
-              <div className="sup-desk-top">
-                <span className="sk-pill-tag" style={{ marginBottom: 0 }}>Documentation</span>
-                <span className="sup-desk-num">01</span>
-              </div>
-              <h3>Understand the workflow</h3>
-              <p>Explore the nine hiring steps and the tools behind them. For workspace-specific setup and API documentation, ask our team.</p>
-              <a className="sk-card-link" href="/how-it-works">Read the workflow guide →</a>
-              <a className="sk-card-link" href="/integrations#api-documentation">Request API documentation →</a>
-            </CinematicCard>
-
-            <CinematicCard className="sup-desk-card" variant="up" delay={1} id="training-academy">
-              <div className="sup-desk-top">
-                <span className="sk-pill-tag" style={{ marginBottom: 0 }}>Training academy</span>
-                <span className="sup-desk-num">02</span>
-              </div>
-              <h3>Build your team&apos;s confidence</h3>
-              <p>Start with our interview checklist and scorecard workshop. Facilitated team training can be discussed with your account team.</p>
-              <a className="sk-card-link" href="/resources#webinars">Open the workshop outline →</a>
-              <a className="sk-card-link" href="/resources#product-videos">Watch the product video →</a>
-            </CinematicCard>
-
-            <CinematicCard className="sup-desk-card" variant="up" delay={2} id="support-plans">
-              <div className="sup-desk-top">
-                <span className="sk-pill-tag" style={{ marginBottom: 0 }}>SLA &amp; support plans</span>
-                <span className="sup-desk-num">03</span>
-              </div>
-              <h3>Know your coverage</h3>
-              <p>Support hours, escalation paths and response targets depend on your agreement. Request the support schedule for your plan.</p>
-              <a className="sk-card-link" href="/pricing">Compare available plans →</a>
-              <a className="sk-card-link" href="mailto:support@talentpool365.com?subject=Support%20coverage%20request">Request your support schedule →</a>
-            </CinematicCard>
+            {support.deskCards.map((card, idx) => (
+              <CinematicCard className="sup-desk-card" variant="up" delay={idx} id={card.id} key={card.id || idx}>
+                <div className="sup-desk-top">
+                  <span className="sk-pill-tag" style={{ marginBottom: 0 }}>{card.tag}</span>
+                  <span className="sup-desk-num">{card.num}</span>
+                </div>
+                <h3>{card.title}</h3>
+                <p>{card.body}</p>
+                {card.links.map((l, i) => (
+                  <a className="sk-card-link" href={l.href} key={`${l.label}-${i}`}>{l.label}</a>
+                ))}
+              </CinematicCard>
+            ))}
           </div>
         </div>
       </section>
 
-      <Faq items={supportQuestions} title="Common questions. *Clear next steps.*" body="A few checks before you contact support." contactHref="#raise-ticket" />
+      <Faq items={support.faqs} title="Common questions. *Clear next steps.*" body="A few checks before you contact support." contactHref="#raise-ticket" />
 
       <section className="sk-band sk-band--cream" id="raise-ticket">
         <div className="container split">
           <div className="split-copy">
-            <span className="sk-pill-tag">RAISE A TICKET</span>
-            <h2 className="sk-serif-h2">Tell us what happened.</h2>
-            <p className="sk-section-sub">
-              Prepare a support email with the context our team needs. Your email application will open; review and send it there. Do not include passwords, access tokens, or candidate records.
-            </p>
-            <a className="sk-card-link" style={{ marginTop: 14 }} href="mailto:support@talentpool365.com">
-              support@talentpool365.com →
+            <span className="sk-pill-tag">{support.ticketTag}</span>
+            <h2 className="sk-serif-h2">{support.ticketTitle}</h2>
+            <p className="sk-section-sub">{support.ticketBody}</p>
+            <a className="sk-card-link" style={{ marginTop: 14 }} href={`mailto:${support.supportEmail}`}>
+              {support.supportEmail} →
             </a>
           </div>
           <LeadForm
-            recipient="support@talentpool365.com"
+            recipient={support.supportEmail}
             subject="Support request"
             fields={[
               { name: 'name', label: 'Full name', required: true, autoComplete: 'name' },
@@ -126,10 +99,10 @@ export function SupportPage() {
         <div className="container status-panel">
           <span className="status-dot" aria-hidden="true" />
           <div>
-            <span className="sk-pill-tag">System status</span>
-            <h2 className="small-heading">Live status is not connected</h2>
-            <p>This page does not monitor the platform. For current service availability or an incident update, contact support.</p>
-            <a className="sk-card-link" href="mailto:support@talentpool365.com?subject=Service%20status%20request">
+            <span className="sk-pill-tag">{support.statusTag}</span>
+            <h2 className="small-heading">{support.statusTitle}</h2>
+            <p>{support.statusBody}</p>
+            <a className="sk-card-link" href={`mailto:${support.supportEmail}?subject=Service%20status%20request`}>
               Request a service update →
             </a>
           </div>

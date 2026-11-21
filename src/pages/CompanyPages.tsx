@@ -12,27 +12,9 @@ import { Reveal } from '../components/Reveal';
 import { SectionHead } from '../components/SectionHead';
 import { SkHero, SkVectorArt } from '../components/SeekOutUI';
 import { SubNav } from '../components/SubNav';
-import { usePageOverride } from '../sanity/SanityProvider';
-import {
-  benefits,
-  buildingBlocks,
-  companyLinks,
-  contactChannels,
-  guardrails,
-  hiringSteps,
-  leaders,
-  leadershipPrinciples,
-  mediaAssets,
-  offices,
-  partnerPrograms,
-  partnerSteps,
-  platformFacts,
-  pressItems,
-  researchTracks,
-  scoreSteps,
-  vacancies,
-  workPrinciples,
-} from '../data/company';
+import { useCompanyContent, usePageOverride } from '../cms/CmsProvider';
+import { companyLinks } from '../data/company';
+import type { IconName } from '../data/content';
 
 interface CompanyShellProps {
   /** Words that rotate in place of the headline's accent phrase. */
@@ -79,6 +61,7 @@ function CompanyShell({ path, label, title, lede, children }: CompanyShellProps)
 /* ---------- About us ---------- */
 
 export function AboutPage() {
+  const { aboutQuickLinks } = useCompanyContent();
   return (
     <CompanyShell
       path="/company/about"
@@ -92,15 +75,11 @@ export function AboutPage() {
         <div className="container">
           <SectionHead title="More about *the company*" />
           <div className="grid grid-3">
-            {[
-              { href: '/company/leadership', icon: 'users' as const, title: 'Leadership team', body: 'Who is accountable for the product, the models and your data.' },
-              { href: '/company/technology', icon: 'cpu' as const, title: 'Technology & innovation', body: 'How a score gets made, and the guardrails around it.' },
-              { href: '/company/careers', icon: 'briefcase' as const, title: 'Careers', body: 'Open roles in Amsterdam, Bengaluru and Austin.' },
-            ].map((item, index) => (
-              <Reveal key={item.href} delay={index}>
+            {aboutQuickLinks.map((item, index) => (
+              <Reveal key={`${item.href}-${index}`} delay={index}>
                 <a className="card link-card" href={item.href}>
                   <span className="icon-tile">
-                    <Icon name={item.icon} />
+                    <Icon name={(item.icon as IconName) || 'users'} />
                   </span>
                   <h3>{item.title}</h3>
                   <p>{item.body}</p>
@@ -118,6 +97,7 @@ export function AboutPage() {
 /* ---------- Leadership team ---------- */
 
 export function LeadershipPage() {
+  const { leaders, leadershipPrinciples } = useCompanyContent();
   return (
     <CompanyShell
       path="/company/leadership"
@@ -169,12 +149,12 @@ export function LeadershipPage() {
 
 /* ---------- Careers ---------- */
 
-const teams = ['All teams', ...Array.from(new Set(vacancies.map((vacancy) => vacancy.team)))];
-
 const applyHref = (title: string) =>
   `mailto:careers@talentpool365.com?subject=${encodeURIComponent(`Application: ${title}`)}`;
 
 export function CareersPage() {
+  const { vacancies, workPrinciples, benefits, hiringSteps } = useCompanyContent();
+  const teams = ['All teams', ...Array.from(new Set<string>(vacancies.map((vacancy) => vacancy.team)))];
   const [team, setTeam] = useState(teams[0]);
   const shown = vacancies.filter((vacancy) => team === teams[0] || vacancy.team === team);
 
@@ -275,26 +255,27 @@ export function CareersPage() {
 
 /* ---------- Partners ---------- */
 
-const partnerFields: LeadField[] = [
-  { name: 'name', label: 'Full name', required: true, autoComplete: 'name' },
-  { name: 'email', label: 'Work email', type: 'email', required: true, autoComplete: 'email' },
-  { name: 'company', label: 'Company', required: true, autoComplete: 'organization' },
-  {
-    name: 'program',
-    label: 'Partner programme',
-    type: 'select',
-    options: partnerPrograms.map((program) => program.title),
-  },
-  {
-    name: 'about',
-    label: 'Your business and the customers you serve',
-    type: 'textarea',
-    placeholder: 'Markets, typical customer size, what you would like to build or sell…',
-    wide: true,
-  },
-];
-
 export function PartnersPage() {
+  const { partnerPrograms, partnerSteps } = useCompanyContent();
+  const partnerFields: LeadField[] = [
+    { name: 'name', label: 'Full name', required: true, autoComplete: 'name' },
+    { name: 'email', label: 'Work email', type: 'email', required: true, autoComplete: 'email' },
+    { name: 'company', label: 'Company', required: true, autoComplete: 'organization' },
+    {
+      name: 'program',
+      label: 'Partner programme',
+      type: 'select',
+      options: partnerPrograms.map((program) => program.title),
+    },
+    {
+      name: 'about',
+      label: 'Your business and the customers you serve',
+      type: 'textarea',
+      placeholder: 'Markets, typical customer size, what you would like to build or sell…',
+      wide: true,
+    },
+  ];
+
   return (
     <CompanyShell
       path="/company/partners"
@@ -320,7 +301,7 @@ export function PartnersPage() {
                 <p className="program-who">{program.who}</p>
                 <p>{program.body}</p>
                 <ul className="ticks">
-                  {program.points.map((point) => (
+                  {program.points.map((point: string) => (
                     <li key={point}>{point}</li>
                   ))}
                 </ul>
@@ -359,6 +340,7 @@ export function PartnersPage() {
 /* ---------- Technology & innovation ---------- */
 
 export function TechnologyPage() {
+  const { scoreSteps, guardrails, platformFacts, buildingBlocks, researchTracks } = useCompanyContent();
   return (
     <CompanyShell
       path="/company/technology"
@@ -457,6 +439,7 @@ export function TechnologyPage() {
 /* ---------- News & press releases ---------- */
 
 export function NewsPage() {
+  const { pressItems, mediaAssets } = useCompanyContent();
   return (
     <CompanyShell
       path="/company/news"
@@ -532,6 +515,7 @@ export function NewsPage() {
 /* ---------- Contact us ---------- */
 
 export function ContactPage() {
+  const { contactChannels, offices } = useCompanyContent();
   return (
     <CompanyShell
       path="/company/contact"

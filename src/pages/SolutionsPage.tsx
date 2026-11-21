@@ -6,21 +6,19 @@ import { Reveal } from '../components/Reveal';
 import { SectionHead } from '../components/SectionHead';
 import { SkCtaBanner, SkHero, SkVectorArt } from '../components/SeekOutUI';
 import { SubNav } from '../components/SubNav';
-import { productBySlug } from '../data/products';
-import {
-  industrySolutions,
-  sizeSolutions,
-  solutionSections,
-  useCaseSolutions,
-} from '../data/solutions';
+import { solutionSections } from '../data/solutions';
 import { useActiveSection } from '../lib/useActiveSection';
-import { usePageOverride } from '../sanity/SanityProvider';
+import { usePageOverride, useProductsContent, useSolutionsContent } from '../cms/CmsProvider';
 
 const sectionIds = solutionSections.map((section) => section.id);
 const sectionLinks = solutionSections.map((section) => ({ label: section.label, href: `#${section.id}` }));
 
 export function SolutionsPage() {
   const active = useActiveSection(sectionIds);
+  const solutions = useSolutionsContent();
+  const productPages = useProductsContent();
+  const productBySlug = (slug: string) => productPages.find((p) => p.slug === slug);
+  const { industrySolutions, sizeSolutions, useCaseSolutions } = solutions;
   const override = usePageOverride('/solutions');
   const title = (override?.headline || override?.title || 'Built for the way your sector hires').replace(/\*/g, '');
   const subtitle = override?.lede || 'A hospital, a bank, and a fast-growing startup do not hire the same way. Find your industry, company size, or hiring scenario and see how TalentPool365 fits.';
@@ -54,8 +52,8 @@ export function SolutionsPage() {
       <section className="section section--light" id="by-industry">
         <div className="container">
           <SectionHead
-            title="By *industry*"
-            body="Compliance rules, licensing checks and seasonal spikes differ by sector. These playbooks ship with the platform rather than as a services project."
+            title={solutions.industryHeading || 'By *industry*'}
+            body={solutions.industryBody || 'Compliance rules, licensing checks and seasonal spikes differ by sector. These playbooks ship with the platform rather than as a services project.'}
           />
 
           <div className="grid sol-grid">
@@ -70,7 +68,7 @@ export function SolutionsPage() {
                 <div className="sol-points-wrap">
                   <span className="how-help-lbl">How we help:</span>
                   <ul className="ticks">
-                    {industry.points.map((point) => (
+                    {industry.points.map((point: string) => (
                       <li key={point}>{point}</li>
                     ))}
                   </ul>
@@ -90,8 +88,8 @@ export function SolutionsPage() {
       <section className="section" id="by-company-size">
         <div className="container">
           <SectionHead
-            title="By *company size*"
-            body="The same platform at every size. What changes is how much of it you switch on, and how much control you need around it."
+            title={solutions.sizeHeading || 'By *company size*'}
+            body={solutions.sizeBody || 'The same platform at every size. What changes is how much of it you switch on, and how much control you need around it.'}
           />
 
           <div className="size-grid">
@@ -114,7 +112,7 @@ export function SolutionsPage() {
                 <div className="sol-points-wrap">
                   <span className="how-help-lbl">How we help:</span>
                   <ul className="ticks">
-                    {size.points.map((point) => (
+                    {size.points.map((point: string) => (
                       <li key={point}>{point}</li>
                     ))}
                   </ul>
@@ -132,8 +130,8 @@ export function SolutionsPage() {
       <section className="section section--light" id="by-use-case">
         <div className="container">
           <SectionHead
-            title="By *use case*"
-            body="Different kinds of hiring lean on different parts of the platform. Each one below lists the products that do most of the work."
+            title={solutions.useCaseHeading || 'By *use case*'}
+            body={solutions.useCaseBody || 'Different kinds of hiring lean on different parts of the platform. Each one below lists the products that do most of the work.'}
           />
 
           <div className="use-list">
@@ -155,7 +153,7 @@ export function SolutionsPage() {
                   <div className="sol-points-wrap">
                     <span className="how-help-lbl">How we help:</span>
                     <ul className="ticks">
-                      {useCase.points.map((point) => (
+                      {useCase.points.map((point: string) => (
                         <li key={point}>{point}</li>
                       ))}
                     </ul>
@@ -164,7 +162,7 @@ export function SolutionsPage() {
                 <div className="use-row-products">
                   <p>Products used most</p>
                   <ul className="chip-list">
-                    {useCase.products.map((slug, i) => {
+                    {useCase.products.map((slug: string, i: number) => {
                       const product = productBySlug(slug);
                       return product ? (
                         <li key={slug} style={{ '--i': i } as CSSProperties}>

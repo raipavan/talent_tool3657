@@ -6,142 +6,10 @@ import { Faq } from '../components/Faq';
 import { Icon } from '../components/Icon';
 import { SectionHead } from '../components/SectionHead';
 import { SkCtaBanner, SkHero, SkVectorArt } from '../components/SeekOutUI';
-import { resources } from '../data/resources';
-import { usePageOverride } from '../sanity/SanityProvider';
-
-const glossary = [
-  ['ATS', 'Applicant tracking system: the core software used by HR to post jobs, store candidate resumes, and manage recruitment pipeline stages.'],
-  ['Structured interview', 'An interview format using standardized, job-relevant questions scored against a consistent pre-defined evaluation rubric.'],
-  ['Talent pool', 'A curated, categorized database of pre-qualified active and passive candidates available for current and future hiring needs.'],
-  ['Semantic matching', 'Agentic AI-driven candidate matching that understands the contextual relationships between skills, accomplishments, and requirements rather than relying on exact keyword matching.'],
-  ['Time-to-hire', 'The elapsed duration between a job requisition opening or initial applicant submission and the accepted offer letter.'],
-  ['Fair Hiring Agentic AI', 'Explainable Agentic AI scoring algorithms designed with strict anti-bias guardrails, excluding protected demographic attributes and requiring human oversight.'],
-  ['Cognitive assessment', 'Objective evaluation measuring analytical reasoning, problem-solving speed, attention to detail, and pattern recognition.'],
-  ['Proctoring', 'Automated integrity monitoring during online tests and interviews, tracking tab switches, secondary screens, and identity verification.'],
-];
-
-export interface BlogPost {
-  id: string;
-  category: string;
-  title: string;
-  tagline: string;
-  readTime: string;
-  date: string;
-  author: string;
-  summary: string;
-  paragraphs: string[];
-}
-
-export const documentBlogPosts: BlogPost[] = [
-  {
-    id: 'ai-changing-recruitment',
-    category: 'Agentic AI in Recruitment',
-    title: 'How Agentic AI is changing recruitment, and what recruiters should do about it',
-    tagline: 'A practical look at where Agentic AI helps in hiring, where human judgment still matters, and how to start without disrupting your process.',
-    readTime: '6 min read',
-    date: 'November 2026',
-    author: 'Editorial Team · TalentPool365',
-    summary: 'A balanced assessment of modern Agentic AI in talent acquisition: why semantic understanding outperforms keyword filtering, how to maintain human judgment at critical decision moments, and where automation provides immediate return on investment.',
-    paragraphs: [
-      'The modern recruiting desk has reached an unsustainable breaking point. With one-click job applications and remote job boards, an average engineering or corporate requisition attracts hundreds of applications, over 70% of which do not meet foundational job criteria. Recruiters spend an estimated 18 to 22 hours per week simply sifting through PDFs and copying candidate contact details into spreadsheets.',
-      'Artificial intelligence in recruitment is often misunderstood as an automated decision-maker. In reality, responsible Agentic AI acts as an executive intelligence assistant. It performs semantic extraction—understanding that a candidate who led a React-to-Next.js migration possesses senior frontend engineering capabilities even if the words "State Management Architecture" were not explicitly copy-pasted into their resume skills section.',
-      'Crucially, ethical hiring systems must enforce human-in-the-loop oversight. Agentic AI should calculate match scores, surface evidence, flag missing prerequisites, and conduct preliminary structured screening interviews. However, the decision of whether to advance, offer, or disqualify a human candidate must always rest with human recruiters and hiring managers who possess organizational empathy.',
-      'To implement Agentic AI safely without disrupting current operations, talent leaders should start with repeatable administrative burdens: resume parsing, initial proctored technical evaluations, and automated WhatsApp follow-ups. Measuring time-in-stage reductions against candidate satisfaction surveys creates a clear baseline for further automation.',
-    ],
-  },
-  {
-    id: 'build-talent-pool',
-    category: 'Talent Sourcing',
-    title: 'How to build a talent pool that fills roles before they open',
-    tagline: 'Turn past applicants and silver medalists into a ready pipeline.',
-    readTime: '5 min read',
-    date: 'November 2026',
-    author: 'Sourcing Practice · TalentPool365',
-    summary: 'Why your dormant applicant tracking archive is your most valuable sourcing asset, and how semantic tagging turns silver medalists into hires within hours.',
-    paragraphs: [
-      'Every hiring manager remembers the runner-up: the exceptional finalist who was narrowly passed over for an open requisition simply because the business could only extend one offer. In traditional recruitment workflows, that candidate’s resume falls into a digital black hole in the ATS, never to be opened again.',
-      'Building an active talent pool requires treating candidate relationships as continuous connections rather than transactional encounters. By organizing candidates into dynamic pools based on competencies, seniorities, and geographic availability, talent acquisition teams ensure that when a new requisition opens, they start with a pre-vetted shortlist rather than starting from zero on expensive job boards.',
-      'Automated re-engagement campaigns play a decisive role. Sending contextual updates—such as engineering open-source milestones, team growth announcements, and polite check-ins regarding notice periods—keeps passive candidates warm and engaged. When a matching role opens, reaching out takes seconds, producing response rates up to 4 times higher than cold outreach on LinkedIn.',
-    ],
-  },
-  {
-    id: 'resume-screening-scale',
-    category: 'Candidate Screening',
-    title: 'Resume screening at scale: how to review 500 applications without burning out',
-    tagline: 'Simple steps to cut manual screening without missing good candidates.',
-    readTime: '4 min read',
-    date: 'October 2026',
-    author: 'Recruitment Ops · TalentPool365',
-    summary: 'Techniques for high-volume screening that eliminate recruiter fatigue while preventing false rejections of non-traditional talent.',
-    paragraphs: [
-      'Recruiter fatigue is the single greatest cause of poor hiring decisions in high-volume hiring. When an HR professional evaluates their 150th resume of the afternoon, cognitive bias spikes, and candidates are rejected for superficial reasons like font choice, resume layout, or non-traditional job titles.',
-      'The solution lies in automated parsing and multi-criteria weighting. By separating requirements into strict must-haves (e.g. required clinical certifications or right-to-work status) and flexible nice-to-haves (e.g. familiarity with a specific internal tool), recruiters can configure algorithms that rank candidates by actual merit.',
-      'Transparent scoring transforms the screening pipeline. When a recruiter opens an applicant record and sees an itemized breakdown—94% Match: 6 years relevant experience, strong project portfolio, lacks GraphQL (nice-to-have)—they can make an evidence-based shortlisting determination in 15 seconds rather than 10 minutes.',
-    ],
-  },
-  {
-    id: 'skills-based-hiring',
-    category: 'Hiring Strategy',
-    title: 'Skills-based hiring: why job titles don’t tell the whole story',
-    tagline: 'How to look past titles and find people who can do the work.',
-    readTime: '5 min read',
-    date: 'October 2026',
-    author: 'People Strategy · TalentPool365',
-    summary: 'Moving beyond legacy credentials and company brands to evaluate real-world problem solving, code quality, and practical domain execution.',
-    paragraphs: [
-      'In fast-moving industries like software engineering, data science, and product design, formal job titles are notoriously inconsistent. One company’s "Associate Engineer" might be designing distributed microservices, while another enterprise’s "Lead Architect" spends their days in administrative governance meetings.',
-      'Skills-based hiring de-emphasizes pedigree and prestigious company brand names in favor of verifiable capability. By extracting skills directly from project descriptions, code repositories, open-source contributions, and practical assessments, hiring teams uncover hidden gems whom legacy ATS keyword filters routinely reject.',
-      'Organizations that transition to skills-based hiring report greater employee retention and up to 3.2 times greater diversity in their candidate pipeline. When you test what candidates can actually do rather than where they went to school, meritocracy wins.',
-    ],
-  },
-  {
-    id: 'ai-interviews-experience',
-    category: 'Interviews & Assessments',
-    title: 'Agentic AI interviews: what candidates experience and how to make it fair',
-    tagline: 'Tips for designing automated interviews that candidates respect.',
-    readTime: '6 min read',
-    date: 'September 2026',
-    author: 'Candidate Experience Lab · TalentPool365',
-    summary: 'How to design asynchronous video, voice, and coding interviews that respect candidate schedules, reduce test anxiety, and ensure fair scoring.',
-    paragraphs: [
-      'Asynchronous and Agentic AI-assisted interviews have exploded in adoption, but candidate perception varies dramatically based on implementation. When an interview feels like an interrogation by an opaque black box, completion rates plummet. When it is designed with transparency and flexibility, candidates love the freedom to interview on their own schedule.',
-      'Fairness begins with transparent expectations. Before candidates begin recording, they should receive a clear walkthrough of the competencies being tested, the duration of each answer, whether retakes are permitted, and how their responses will be evaluated. Explaining upfront that human recruiters review all recordings eliminates distrust.',
-      'Accessibility is paramount. Providing voice-first alternatives for low-bandwidth environments, accommodating sensory requirements, and conducting ongoing audits for linguistic or dialect bias ensures that automated interview systems expand access rather than erecting new barriers.',
-    ],
-  },
-  {
-    id: 'recruitment-metrics-track',
-    category: 'Recruitment Analytics',
-    title: 'The hiring metrics every recruiter should track',
-    tagline: 'Time-to-hire, source quality, funnel drop-off and what each one tells you.',
-    readTime: '5 min read',
-    date: 'September 2026',
-    author: 'Analytics Team · TalentPool365',
-    summary: 'Move past vanity metrics to measure recruiting velocity, funnel dwell time, source ROI, and long-term candidate retention.',
-    paragraphs: [
-      'Many recruitment teams track superficial numbers such as "Total Resumes Received" or "Interviews Scheduled." While easy to report, these vanity metrics say very little about the health, speed, or quality of the talent acquisition pipeline.',
-      'A mature talent team focuses on conversion velocity: measuring median days spent in each stage (Sourcing to Screened, Screened to Assessed, Assessed to Offer). Identifying which specific handoff creates delays—frequently the gap between shortlist delivery and hiring manager interview scheduling—pinpoints where process improvements yield exponential returns.',
-      'Equally vital is Source Effectiveness. By measuring quality-of-hire and offer acceptance rates grouped by acquisition channel, organizations frequently discover that expensive job boards produce high volume but low retention, whereas referral pools and direct Agentic AI candidate discovery deliver superior longevity.',
-    ],
-  },
-  {
-    id: 'candidate-engagement-updates',
-    category: 'Candidate Experience',
-    title: 'How to keep candidates engaged between application and offer',
-    tagline: 'Timely updates, WhatsApp follow-ups and why silence loses great hires.',
-    readTime: '4 min read',
-    date: 'August 2026',
-    author: 'Engagement Practice · TalentPool365',
-    summary: 'Why candidate ghosting destroys your employer brand, and how omnichannel WhatsApp and email notifications keep top finalists excited.',
-    paragraphs: [
-      'The modern candidate experience has a silent killer: the multi-week communication void. When top candidates submit an application or complete an interview, they expect timely updates. When met with silence, top talent assumes rejection and accepts competing offers.',
-      'Omnichannel communication bridges this gap. Meeting candidates on WhatsApp—where response rates exceed 88% within the first hour—dramatically outperforms email in driving test completion and interview attendance. Simple automated nudges, such as "Your technical assessment is ready for review" or "Your interview feedback is being finalized," maintain momentum.',
-      'The pre-onboarding gap between signed offer and day one is equally critical. Providing new hires with a digital pre-boarding checklist, welcome messages from their team, and transparent equipment setup schedules eliminates day-one no-shows and starts employee tenure with confidence.',
-    ],
-  },
-];
+import { usePageOverride, useResourcesContent, type BlogPost } from '../cms/CmsProvider';
 
 export function ResourcesPage() {
+  const { resources, glossary } = useResourcesContent();
   const [query, setQuery] = useState('');
   const [category, setCategory] = useState('All resources');
   const hash = useHash();
@@ -152,7 +20,7 @@ export function ResourcesPage() {
     setCategory('All resources');
     const frame = requestAnimationFrame(() => scrollToHash(hash));
     return () => cancelAnimationFrame(frame);
-  }, [hash]);
+  }, [hash, resources]);
 
   const categories = ['All resources', 'Guide', 'White paper brief', 'Report framework', 'E-book checklist', 'Workshop outline'];
   const shown = resources.filter(
@@ -284,10 +152,10 @@ export function ResourcesPage() {
             body="Clear explanations of modern talent acquisition and recruitment Agentic AI concepts."
           />
           <dl className="glossary-grid">
-            {glossary.map(([term, meaning]) => (
-              <div key={term}>
-                <dt>{term}</dt>
-                <dd>{meaning}</dd>
+            {glossary.map((entry, idx) => (
+              <div key={`${entry.term}-${idx}`}>
+                <dt>{entry.term}</dt>
+                <dd>{entry.definition}</dd>
               </div>
             ))}
           </dl>
@@ -300,6 +168,7 @@ export function ResourcesPage() {
 }
 
 export function BlogPage() {
+  const { blogPosts: documentBlogPosts } = useResourcesContent();
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [searchQuery, setSearchQuery] = useState('');
   const [readingPost, setReadingPost] = useState<BlogPost | null>(null);

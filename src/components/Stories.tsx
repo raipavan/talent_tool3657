@@ -1,11 +1,14 @@
 import type { KeyboardEvent } from 'react';
-import { stories } from '../data/content';
+import { stories as staticStories } from '../data/content';
 import { useCarousel } from '../lib/useCarousel';
 import { useReveal } from '../lib/useReveal';
+import { useCustomersContent } from '../cms/CmsProvider';
 import { Icon } from './Icon';
 import { SectionHead } from './SectionHead';
 
 export function Stories() {
+  const customers = useCustomersContent();
+  const stories = customers?.stories?.length ? customers.stories : staticStories;
   const { scrollerRef, index, go } = useCarousel(stories.length);
   const reveal = useReveal(scrollerRef);
 

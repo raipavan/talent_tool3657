@@ -5,9 +5,10 @@ import { SectionHead } from '../components/SectionHead';
 import { SkCtaBanner, SkHero, SkLogoMarquee, SkVectorArt } from '../components/SeekOutUI';
 import { Stories } from '../components/Stories';
 import { SubNav } from '../components/SubNav';
-import { usePageOverride } from '../sanity/SanityProvider';
+import { useCustomersContent, usePageOverride } from '../cms/CmsProvider';
 
 export function CustomersPage() {
+  const customers = useCustomersContent();
   const override = usePageOverride('/customers');
   const title = (override?.headline || override?.title || 'Less chasing. More connecting.').replace(/\*/g, '');
   const subtitle = override?.lede || "See how a connected hiring process changes a recruiting team's week, then model the hours and budget your own team could get back.";
@@ -55,9 +56,7 @@ export function CustomersPage() {
       />
 
       <div className="container">
-        <p className="notice">
-          The stories and testimonials below are illustrative examples, not verified customer endorsements. Ask our team for approved customer references.
-        </p>
+        <p className="notice">{customers.notice}</p>
       </div>
 
       <CaseStudies />
@@ -66,8 +65,8 @@ export function CustomersPage() {
       <section className="sk-band sk-band--cream" id="roi-calculator">
         <div className="container">
           <SectionHead
-            title="What could your team *get back?*"
-            body="Set your own assumptions. This estimates the value of recruiter time saved, not guaranteed cash savings or a net return on investment."
+            title={customers.roiTitle || 'What could your team *get back?*'}
+            body={customers.roiBody || 'Set your own assumptions. This estimates the value of recruiter time saved, not guaranteed cash savings or a net return on investment.'}
           />
           <div className="roi-layout">
             <div className="card roi-inputs">
@@ -126,13 +125,11 @@ export function CustomersPage() {
       <section className="sk-band sk-band--white" id="customer-videos">
         <div className="container split">
           <div className="split-copy">
-            <span className="sk-pill-tag">PLATFORM WALKTHROUGH</span>
-            <h2 className="sk-serif-h2">See the workflow in motion.</h2>
-            <p className="sk-section-sub">
-              Watch our product walkthrough. Customer interview recordings are not published here yet; our team can help with approved references.
-            </p>
-            <a className="sk-card-link" style={{ marginTop: 16 }} href="/company/contact">
-              Ask for customer references →
+            <span className="sk-pill-tag">{customers.videoTag || 'PLATFORM WALKTHROUGH'}</span>
+            <h2 className="sk-serif-h2">{customers.videoTitle || 'See the workflow in motion.'}</h2>
+            <p className="sk-section-sub">{customers.videoBody}</p>
+            <a className="sk-card-link" style={{ marginTop: 16 }} href={customers.videoLinkHref || '/company/contact'}>
+              {customers.videoLinkLabel || 'Ask for customer references →'}
             </a>
           </div>
           <DemoVideo />

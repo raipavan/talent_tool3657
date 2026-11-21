@@ -1,21 +1,26 @@
-import { caseStudies } from '../data/content';
+import { caseStudies as staticCaseStudies, type CaseStudy } from '../data/content';
+import { useHomeContent } from '../cms/CmsProvider';
 import { Reveal } from './Reveal';
 import { SectionHead } from './SectionHead';
 
 export function CaseStudies() {
+  const home = useHomeContent();
+  const caseStudies = (home?.caseStudies?.length ? home.caseStudies : staticCaseStudies) as CaseStudy[];
+  const copy = home?.caseStudiesSection || {};
+
   return (
     <section className="section section--light" id="case-studies">
       <div className="container">
         <SectionHead
           center
-          eyebrow="Case studies"
-          title="Teams that *stopped chasing* candidates"
-          body="Three hiring teams, the problem each one started with, and what changed."
+          eyebrow={copy.eyebrow || 'Case studies'}
+          title={copy.title || 'Teams that *stopped chasing* candidates'}
+          body={copy.body || 'Three hiring teams, the problem each one started with, and what changed.'}
         />
 
         <div className="grid case-grid">
           {caseStudies.map((study, index) => (
-            <Reveal as="article" key={study.company} className="case-card" delay={index}>
+            <Reveal as="article" key={`${study.company}-${index}`} className="case-card" delay={index}>
               <header className="case-head">
                 <h3>{study.company}</h3>
                 <span className="case-tag">{study.industry}</span>
@@ -35,12 +40,12 @@ export function CaseStudies() {
                 </div>
               </dl>
               <ul className="ticks case-results">
-                {study.results.map((result) => (
-                  <li key={result}>{result}</li>
+                {(study.results || []).map((result, i) => (
+                  <li key={`${result}-${i}`}>{result}</li>
                 ))}
               </ul>
-              <a className="case-link" href="/company/contact#contact">
-                Request the full case study <span aria-hidden="true">&rarr;</span>
+              <a className="case-link" href={copy.linkHref || '/company/contact#contact'}>
+                {copy.linkLabel || 'Request the full case study'} <span aria-hidden="true">&rarr;</span>
               </a>
             </Reveal>
           ))}

@@ -3,10 +3,8 @@ import { BotBuddy } from '../components/BotBuddy';
 import { Icon } from '../components/Icon';
 import { ProductMock } from '../components/ProductMock';
 import { SkCtaBanner, SkHero, SkLogoMarquee } from '../components/SeekOutUI';
-import { productPages, productPath, type ProductPage as ProductData } from '../data/products';
-import { useSanityData } from '../sanity/useSanity';
-import { productBySlugQuery } from '../sanity/queries';
-import { usePageOverride } from '../sanity/SanityProvider';
+import { productPath, type ProductPage as ProductData } from '../data/products';
+import { usePageOverride, useProductsContent } from '../cms/CmsProvider';
 import {
   SourcingExperience,
   ScreeningExperience,
@@ -20,21 +18,18 @@ import {
 } from '../components/ProductUniqueExperiences';
 
 export function ProductPage({ product: initialProduct }: { product: ProductData }) {
-  const { data: rawProduct } = useSanityData<ProductData>(
-    productBySlugQuery,
-    initialProduct,
-    { slug: initialProduct.slug }
-  );
+  const productPages = useProductsContent();
+  const cmsProduct = productPages.find((p) => p.slug === initialProduct.slug) ?? initialProduct;
   const override = usePageOverride(`/products/${initialProduct.slug}`) || usePageOverride(initialProduct.slug);
   const product: ProductData = {
-    ...rawProduct,
-    title: override?.title || rawProduct.title,
-    headline: override?.headline || rawProduct.headline,
-    lede: override?.lede || rawProduct.lede,
+    ...cmsProduct,
+    title: override?.title || cmsProduct.title,
+    headline: override?.headline || cmsProduct.headline,
+    lede: override?.lede || cmsProduct.lede,
   };
-  const position = productPages.indexOf(initialProduct);
-  const previous = productPages[position - 1];
-  const next = productPages[position + 1];
+  const position = productPages.findIndex((p) => p.slug === initialProduct.slug);
+  const previous = position > 0 ? productPages[position - 1] : undefined;
+  const next = position >= 0 ? productPages[position + 1] : undefined;
 
   // Talent Sourcing keeps its full dedicated SeekOut Recruit page layout
   if (product.slug === 'talent-sourcing') {

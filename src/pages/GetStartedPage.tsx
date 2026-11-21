@@ -3,43 +3,17 @@ import { DemoVideo } from '../components/DemoVideo';
 import { LeadForm } from '../components/LeadForm';
 import { Icon } from '../components/Icon';
 import { SkCtaBanner, SkLogoMarquee } from '../components/SeekOutUI';
-import { usePageOverride } from '../sanity/SanityProvider';
-
-const intents = [
-  {
-    id: 'request-demo',
-    label: 'Request demo',
-    title: 'See it with your own role.',
-    body: 'Bring a job description and the questions your team wants answered. We will prepare a focused product walkthrough.',
-  },
-  {
-    id: 'book-meeting',
-    label: 'Book meeting',
-    title: 'Make time for a useful conversation.',
-    body: 'Tell us your timezone and a few preferred times. This is a meeting request, not an instant calendar booking.',
-  },
-  {
-    id: 'start-free-trial',
-    label: 'Start free trial',
-    title: 'Explore a pilot for your team.',
-    body: 'Tell us what you want to evaluate. Our team will confirm trial availability, scope, and access.',
-  },
-  {
-    id: 'contact-sales',
-    label: 'Contact sales',
-    title: 'Talk through the practical details.',
-    body: 'Hiring volume, integrations, procurement, or rollout. Give us the context and we will route your email.',
-  },
-];
+import { useGetStartedContent, usePageOverride } from '../cms/CmsProvider';
 
 export function GetStartedPage() {
   const hash = useHash();
+  const gs = useGetStartedContent();
+  const intents = gs.intents;
   const intent = intents.find((item) => `#${item.id}` === hash) ?? intents[0];
   const override = usePageOverride('/get-started');
 
   return (
     <main className="sk-page">
-      {/* SeekOut /requestdemo/ Conversion Hero */}
       <section className="sk-hero">
         <div className="container">
           <div className="sk-hero-grid sk-hero-grid--wide" style={{ alignItems: 'start' }}>
@@ -54,9 +28,8 @@ export function GetStartedPage() {
                   <>See it run on a role <span className="accent">you&apos;re hiring for.</span></>
                 )}
               </h1>
-              <p className="sk-hero-sub">{override?.lede || intent.body}</p>
+              <p className="sk-hero-sub">{override?.lede || intent?.body}</p>
 
-              {/* Floating Candidate Match UI Preview Card (SeekOut /requestdemo/) */}
               <div
                 style={{
                   background: 'rgba(255, 255, 255, 0.08)',
@@ -68,7 +41,7 @@ export function GetStartedPage() {
                 }}
               >
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
-                  <strong style={{ color: '#fff', fontSize: '0.95rem' }}>Priya Sundaram · Top Match</strong>
+                  <strong style={{ color: '#fff', fontSize: '0.95rem' }}>{gs.previewName}</strong>
                   <span
                     style={{
                       background: '#34D399',
@@ -79,37 +52,30 @@ export function GetStartedPage() {
                       borderRadius: 9999,
                     }}
                   >
-                    96% Match
+                    {gs.previewBadge}
                   </span>
                 </div>
                 <p style={{ margin: 0, fontSize: '0.82rem', color: 'rgba(247,251,248,0.78)' }}>
-                  Senior Frontend Architect · React, TypeScript, Distributed UI · Rediscovered Silver Medalist
+                  {gs.previewDesc}
                 </p>
               </div>
 
               <ul className="sk-checklist" style={{ color: '#f7fbf8' }}>
-                <li style={{ color: 'rgba(247,251,248,0.88)' }}>Your role and hiring goals set the agenda</li>
-                <li style={{ color: 'rgba(247,251,248,0.88)' }}>Live walkthrough of AI scoring &amp; ATS sync</li>
-                <li style={{ color: 'rgba(247,251,248,0.88)' }}>No credit card or commitment required</li>
+                {gs.checklist.map((item, idx) => (
+                  <li key={`${item}-${idx}`} style={{ color: 'rgba(247,251,248,0.88)' }}>{item}</li>
+                ))}
               </ul>
 
               <div className="sk-hero-stats">
-                <div className="sk-hero-stat">
-                  <strong>1B+</strong>
-                  <span>Profiles &amp; archives</span>
-                </div>
-                <div className="sk-hero-stat">
-                  <strong>750+</strong>
-                  <span>Hiring teams</span>
-                </div>
-                <div className="sk-hero-stat">
-                  <strong>4.8 ★</strong>
-                  <span>Recruiter rating</span>
-                </div>
+                {gs.stats.map((s, idx) => (
+                  <div className="sk-hero-stat" key={`${s.label}-${idx}`}>
+                    <strong>{s.value}</strong>
+                    <span>{s.label}</span>
+                  </div>
+                ))}
               </div>
             </div>
 
-            {/* Right Column: White Conversion Form Card + Dark Trial Card */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
               <div
                 style={{
@@ -121,7 +87,7 @@ export function GetStartedPage() {
                 }}
               >
                 <h2 style={{ fontFamily: 'Newsreader, Georgia, serif', fontSize: '1.65rem', margin: '0 0 12px', color: '#0f2926' }}>
-                  {intent.label}
+                  {intent?.label || 'Request demo'}
                 </h2>
                 <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 18 }}>
                   {intents.map((item) => (
@@ -136,9 +102,9 @@ export function GetStartedPage() {
                         fontWeight: 600,
                         border: '1px solid',
                         cursor: 'pointer',
-                        background: intent.id === item.id ? '#123F3B' : '#f8fafc',
-                        borderColor: intent.id === item.id ? '#123F3B' : '#cbd5e1',
-                        color: intent.id === item.id ? '#ffffff' : '#334155',
+                        background: intent?.id === item.id ? '#123F3B' : '#f8fafc',
+                        borderColor: intent?.id === item.id ? '#123F3B' : '#cbd5e1',
+                        color: intent?.id === item.id ? '#ffffff' : '#334155',
                       }}
                     >
                       {item.label}
@@ -147,8 +113,8 @@ export function GetStartedPage() {
                 </div>
 
                 <LeadForm
-                  key={intent.id}
-                  subject={intent.label}
+                  key={intent?.id || 'default'}
+                  subject={intent?.label || 'Request demo'}
                   fields={[
                     { name: 'name', label: 'Full name', required: true, autoComplete: 'name' },
                     { name: 'email', label: 'Work email', type: 'email', required: true, autoComplete: 'email' },
@@ -162,7 +128,7 @@ export function GetStartedPage() {
                     {
                       name: 'message',
                       label:
-                        intent.id === 'book-meeting'
+                        intent?.id === 'book-meeting'
                           ? 'Preferred times, timezone and what you want to discuss'
                           : 'What would you like to explore?',
                       type: 'textarea',
@@ -189,10 +155,10 @@ export function GetStartedPage() {
               >
                 <div>
                   <strong style={{ display: 'block', color: '#ffffff', fontSize: '0.95rem' }}>
-                    Not ready to talk to anyone?
+                    {gs.tourBannerTitle}
                   </strong>
                   <span style={{ fontSize: '0.82rem', color: 'rgba(247,251,248,0.75)' }}>
-                    Watch the 30-sec guided workflow tour first.
+                    {gs.tourBannerSub}
                   </span>
                 </div>
                 <a className="sk-btn-outline-light" href="#watch-product-tour">
@@ -209,11 +175,9 @@ export function GetStartedPage() {
       <section className="sk-band sk-band--cream" id="watch-product-tour">
         <div className="container split">
           <div className="split-copy">
-            <span className="sk-pill-tag">GUIDED TOUR</span>
-            <h2 className="sk-serif-h2">A first look. On your time.</h2>
-            <p className="sk-section-sub">
-              Follow the product from candidate pipeline to hiring insights in this short walkthrough.
-            </p>
+            <span className="sk-pill-tag">{gs.tourSectionTag}</span>
+            <h2 className="sk-serif-h2">{gs.tourSectionTitle}</h2>
+            <p className="sk-section-sub">{gs.tourSectionBody}</p>
             <a className="sk-card-link" style={{ marginTop: 14 }} href="/products">
               Explore the full platform <Icon name="arrow-right" />
             </a>

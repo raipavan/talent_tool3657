@@ -1,7 +1,7 @@
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import App from './App';
-import { SanityProvider } from './sanity/SanityProvider';
+import { CmsProvider } from './cms/CmsProvider';
 import './styles/global.css';
 import './styles/showcase.css';
 import './styles/pages.css';
@@ -15,8 +15,8 @@ if (!root) {
 
 createRoot(root).render(
   <StrictMode>
-    <SanityProvider>
+    <CmsProvider>
       <App />
-    </SanityProvider>
+    </CmsProvider>
   </StrictMode>,
 );

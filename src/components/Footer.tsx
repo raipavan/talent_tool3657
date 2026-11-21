@@ -7,6 +7,13 @@ export function Footer() {
   const navigation = useNavigationContent();
   const footerColumns = (navigation?.footerColumns ?? staticFooterColumns) as FooterColumn[];
   const footerLegalLinks = (navigation?.footerLegalLinks ?? staticFooterLegalLinks) as NavLink[];
+  const footerMeta = navigation?.footer || {};
+  const officeCountry = footerMeta.officeCountry || 'USA';
+  const officeAddress =
+    footerMeta.officeAddress || '11549 Nuckols Road, Suite B, Glen Allen, VA 23059 United States';
+  const phone = footerMeta.phone || '+1 302-231-1816';
+  const phoneHref = `tel:${phone.replace(/[^+\d]/g, '')}`;
+  const copyrightText = footerMeta.copyright || 'TalentPool365 B.V. All rights reserved.';
 
   return (
     <footer className="site-footer" id="footer">
@@ -68,10 +75,10 @@ export function Footer() {
                       <circle cx="12" cy="10.5" r="0.75" fill="#FFFFFF" />
                     </g>
                   </svg>
-                  <span className="footer-address-card__country">USA</span>
+                  <span className="footer-address-card__country">{officeCountry}</span>
                 </div>
                 <p className="footer-address-card__text">
-                  11549 Nuckols Road, Suite B, Glen Allen, VA 23059 United States
+                  {officeAddress}
                 </p>
               </div>
               <div className="footer-address-card__footer">
@@ -79,18 +86,18 @@ export function Footer() {
                   <rect x="5" y="2" width="14" height="20" rx="2" ry="2" />
                   <line x1="12" y1="18" x2="12.01" y2="18" />
                 </svg>
-                <span>Phone: <a href="tel:+13022311816">+1 302-231-1816</a></span>
+                <span>Phone: <a href={phoneHref}>{phone}</a></span>
               </div>
             </div>
           </div>
 
           <div className="footer-cols">
-            {footerColumns.map((column) => (
-              <div className="footer-col" key={column.title}>
+            {footerColumns.map((column, colIdx) => (
+              <div className="footer-col" key={`${column.title}-${colIdx}`}>
                 <h4>{column.title}</h4>
                 <ul>
-                  {column.links.map((link) => (
-                    <li key={link.label}>
+                  {(column.links || []).map((link, linkIdx) => (
+                    <li key={`${link.label}-${linkIdx}`}>
                       <a href={link.href}>{link.label}</a>
                     </li>
                   ))}
@@ -106,12 +113,12 @@ export function Footer() {
               onClick={() => navigate('/studio')}
               style={{ cursor: 'default' }}
             >
-              © {year} TalentPool365 B.V. All rights reserved.
+              © {year} {copyrightText}
             </span>
           </p>
           <ul>
-            {footerLegalLinks.map((link) => (
-              <li key={link.label}>
+            {footerLegalLinks.map((link, idx) => (
+              <li key={`${link.label}-${idx}`}>
                 <a href={link.href}>{link.label}</a>
               </li>
             ))}

@@ -1,5 +1,6 @@
 import { useState, type ReactNode } from 'react';
 import type { IconName } from '../data/content';
+import { useGlobalBannersContent } from '../cms/CmsProvider';
 import { Icon } from './Icon';
 
 interface HeroStat {
@@ -108,17 +109,21 @@ const ENTERPRISE_LOGOS = [
 ];
 
 export function SkLogoMarquee({
-  label = 'TRUSTED BY TALENT ACQUISITION TEAMS AT GROWING ENTERPRISES',
+  label,
 }: {
   label?: string;
 }) {
+  const banners = useGlobalBannersContent();
+  const displayLabel = label ?? banners?.marqueeLabel ?? 'TRUSTED BY TALENT ACQUISITION TEAMS AT GROWING ENTERPRISES';
+  const logos = banners?.marqueeLogos?.length ? banners.marqueeLogos : ENTERPRISE_LOGOS;
+
   return (
     <section className="sk-marquee">
       <div className="container">
-        <p className="sk-marquee-label">{label}</p>
+        <p className="sk-marquee-label">{displayLabel}</p>
         <div className="sk-marquee-row">
-          {ENTERPRISE_LOGOS.map((name) => (
-            <span key={name} className="sk-marquee-logo">
+          {logos.map((name, idx) => (
+            <span key={`${name}-${idx}`} className="sk-marquee-logo">
               {name}
             </span>
           ))}
@@ -129,28 +134,43 @@ export function SkLogoMarquee({
 }
 
 export function SkCtaBanner({
-  title = 'Bring a role you are hiring for.',
-  subtitle = 'See TalentPool365 source, screen, and shortlist live candidates for your toughest open requisition in 15 minutes.',
-  primary = { label: 'Book a demo →', href: '/get-started#book-meeting' },
-  secondary = { label: 'Start free trial', href: '/get-started#start-free-trial' },
+  title,
+  subtitle,
+  primary,
+  secondary,
 }: {
   title?: string;
   subtitle?: string;
   primary?: { label: string; href: string };
   secondary?: { label: string; href: string };
 }) {
+  const banners = useGlobalBannersContent();
+  const displayTitle = title ?? banners?.ctaTitle ?? 'Bring a role you are hiring for.';
+  const displaySubtitle =
+    subtitle ??
+    banners?.ctaSubtitle ??
+    'See TalentPool365 source, screen, and shortlist live candidates for your toughest open requisition in 15 minutes.';
+  const displayPrimary = primary ?? {
+    label: banners?.ctaPrimaryLabel ?? 'Book a demo →',
+    href: banners?.ctaPrimaryHref ?? '/get-started#book-meeting',
+  };
+  const displaySecondary = secondary ?? {
+    label: banners?.ctaSecondaryLabel ?? 'Start free trial',
+    href: banners?.ctaSecondaryHref ?? '/get-started#start-free-trial',
+  };
+
   return (
     <section className="sk-cta-banner">
       <div className="container">
-        <h2>{title}</h2>
-        <p>{subtitle}</p>
+        <h2>{displayTitle}</h2>
+        <p>{displaySubtitle}</p>
         <div className="sk-cta-actions">
-          <a className="sk-btn-orange" href={primary.href}>
-            {primary.label}
+          <a className="sk-btn-orange" href={displayPrimary.href}>
+            {displayPrimary.label}
           </a>
-          {secondary && (
-            <a className="sk-btn-outline-light" href={secondary.href}>
-              {secondary.label}
+          {displaySecondary && (
+            <a className="sk-btn-outline-light" href={displaySecondary.href}>
+              {displaySecondary.label}
             </a>
           )}
         </div>
