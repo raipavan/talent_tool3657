@@ -655,6 +655,7 @@ section[id], footer[id] { scroll-margin-top: calc(var(--header-h) + 12px); }
   display: block;
   width: 100%;
   height: auto;
+  pointer-events: none;
 }
 
 /* ---------- Metrics band ---------- */

@@ -10,7 +10,7 @@ export function DemoVideoSection() {
             muted
             loop
             playsInline
-            controls
+            disablePictureInPicture
             preload="metadata"
           />
         </div>
