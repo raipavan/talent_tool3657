@@ -17,7 +17,6 @@ import { useHomeContent } from '../cms/CmsProvider';
    ------------------------------------------------------------------ */
 
 const STAGES = staticAgents.length;
-const HOLD = 0.35; // extra scroll at the end so the last frame can be read
 const CLUSTER = [1, 0.85, 0.55, 0.38, 0];
 
 const clamp = (x: number) => (x < 0 ? 0 : x > 1 ? 1 : x);
@@ -372,8 +371,8 @@ export function Agents() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const countRefs = useRef<(HTMLElement | null)[]>([]);
   const stationRefs = useRef<(HTMLElement | null)[]>([]);
+  const autoProgressRef = useRef(0);
   const [current, setCurrent] = useState(0);
-  const [started, setStarted] = useState(false);
   const [isStatic, setIsStatic] = useState(false);
 
   useEffect(() => {
@@ -399,7 +398,9 @@ export function Agents() {
     let visible = false;
     let shown = 0;
     let lastStage = -1;
-    let lastStarted = false;
+    let lastNow = 0;
+    const STAGE_SPEED = 0.34; // stages per second (~3s per agent, automatic smooth loop)
+    const LOOP_END = STAGES + 0.9;
 
     const resize = () => {
       const rect = stage.getBoundingClientRect();
@@ -413,19 +414,24 @@ export function Agents() {
       if (particles.length !== total) particles = makeParticles(total, agents);
     };
 
-    const target = () => {
-      const rect = section.getBoundingClientRect();
-      const travel = rect.height - window.innerHeight;
-      return clamp(-rect.top / Math.max(travel, 1)) * (STAGES + HOLD);
-    };
-
     const draw = (now: number) => {
       frame = 0;
       if (!visible) return;
       frame = requestAnimationFrame(draw);
 
+      const dt = lastNow ? Math.min(0.05, (now - lastNow) / 1000) : 0.016;
+      lastNow = now;
       const time = now / 1000;
-      shown += (Math.min(target(), STAGES) - shown) * 0.14;
+
+      autoProgressRef.current += dt * STAGE_SPEED;
+      if (autoProgressRef.current >= LOOP_END) {
+        autoProgressRef.current = 0;
+        shown = 0;
+        ionTrail.length = 0;
+      }
+
+      const desired = Math.min(autoProgressRef.current, STAGES);
+      shown += (desired - shown) * 0.14;
       const t = shown;
 
       const stationX = (k: number) => width * (0.1 + 0.2 * k);
@@ -620,21 +626,19 @@ export function Agents() {
         lastStage = stageNow;
         setCurrent(stageNow);
       }
-      const startedNow = t > 0.12;
-      if (startedNow !== lastStarted) {
-        lastStarted = startedNow;
-        setStarted(startedNow);
-      }
     };
 
     const observer = new IntersectionObserver((entries) => {
       visible = Boolean(entries[0]?.isIntersecting);
-      if (visible && !frame) frame = requestAnimationFrame(draw);
+      if (visible) {
+        lastNow = 0;
+        if (!frame) frame = requestAnimationFrame(draw);
+      }
     });
     const sizeObserver = new ResizeObserver(resize);
 
     resize();
-    shown = target();
+    shown = autoProgressRef.current;
     observer.observe(section);
     sizeObserver.observe(stage);
 
@@ -646,11 +650,8 @@ export function Agents() {
   }, []);
 
   const jumpTo = (k: number) => {
-    const section = sectionRef.current;
-    if (!section) return;
-    const travel = section.offsetHeight - window.innerHeight;
-    const top = section.getBoundingClientRect().top + window.scrollY;
-    window.scrollTo({ top: top + ((k + 0.96) / (STAGES + HOLD)) * travel, behavior: 'smooth' });
+    autoProgressRef.current = k + 0.55;
+    setCurrent(k);
   };
 
   return (
@@ -710,10 +711,6 @@ export function Agents() {
           </ul>
 
           <p className="agents-pool">{copy.poolLabel || 'Talent pool: every other profile stays warm for the next role'}</p>
-          <p className={`agents-hint${started ? ' is-hidden' : ''}`} aria-hidden="true">
-            <span />
-            {copy.scrollHint || 'Scroll to run the requisition'}
-          </p>
         </div>
       </div>
     </section>

@@ -761,21 +761,19 @@ h3, h4 { font-weight: 600; }
 .why-band::before, .why-band::after { display: none; }
 .why-card { border: 1px solid var(--color-border); background: #ffffff; }
 
-/* ---------- AI agents: pinned, scroll-scrubbed scene ---------- */
+/* ---------- AI agents: self-playing automated pipeline scene ---------- */
 .agents {
   position: relative;
-  height: 520vh;
+  height: auto;
   background: var(--color-primary);
   color: #fff;
 }
 .agents-pin {
-  position: sticky;
-  top: 0;
+  position: relative;
   display: grid;
   grid-template-rows: auto minmax(0, 1fr);
-  height: 100vh;
-  height: 100svh;
-  padding-top: calc(var(--header-h) + clamp(4px, 1vh, 12px));
+  height: clamp(620px, 86vh, 840px);
+  padding-top: clamp(44px, 5.5vh, 72px);
   overflow: hidden;
   background:
     radial-gradient(900px 600px at 90% 0%, rgba(56, 107, 87, .42), transparent 64%),
