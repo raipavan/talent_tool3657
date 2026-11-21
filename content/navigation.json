@@ -3,10 +3,6 @@
     "signIn": {
       "label": "Sign In",
       "href": "/get-started"
-    },
-    "cta": {
-      "label": "Book a demo",
-      "href": "/get-started"
     }
   },
   "navItems": [

@@ -29,9 +29,6 @@ export function Header() {
   const signInLabel = navigation?.header?.signIn?.label || 'Sign In';
   const signInHref = resolveHref(navigation?.header?.signIn?.href, '/get-started');
   const isSignInExternal = /^https?:\/\//i.test(signInHref);
-  const ctaLabel = navigation?.header?.cta?.label || 'Book a demo';
-  const ctaHref = resolveHref(navigation?.header?.cta?.href, '/get-started');
-  const isCtaExternal = /^https?:\/\//i.test(ctaHref);
   const [open, setOpen] = useState(false);
   const [openMenu, setOpenMenu] = useState<string | null>(null);
   const [isAdmin, setIsAdmin] = useState(false);
@@ -235,13 +232,6 @@ export function Header() {
         </nav>
 
         <div className="header-actions">
-          <a
-            className="link-quiet"
-            href={signInHref}
-            {...(isSignInExternal ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
-          >
-            {signInLabel}
-          </a>
           {isAdmin && (
             <a
               className="link-quiet"
@@ -261,10 +251,10 @@ export function Header() {
           )}
           <a
             className="btn btn-primary btn--sm"
-            href={ctaHref}
-            {...(isCtaExternal ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
+            href={signInHref}
+            {...(isSignInExternal ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
           >
-            {ctaLabel}
+            {signInLabel}
           </a>
           <button
             ref={toggleRef}
