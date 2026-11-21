@@ -1,8 +1,9 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useSanityContent, type PlanModel, type PricingComparisonFeature } from '../sanity/SanityProvider';
 
 const AUTH_STORAGE_KEY = 'tp365_studio_authenticated';
 const PASSWORD_STORAGE_KEY = 'tp365_studio_password';
+const USERNAME_STORAGE_KEY = 'tp365_studio_username';
 
 export function SanityStudioPage() {
   const {
@@ -31,18 +32,23 @@ export function SanityStudioPage() {
     }
   });
 
-  const [usernameInput, setUsernameInput] = useState('admin');
+  const [usernameInput, setUsernameInput] = useState(() => {
+    return localStorage.getItem(USERNAME_STORAGE_KEY) || 'admin';
+  });
   const [passwordInput, setPasswordInput] = useState('');
   const [rememberMe, setRememberMe] = useState(true);
   const [authError, setAuthError] = useState<string | null>(null);
+  const [authSuccess, setAuthSuccess] = useState<string | null>(null);
   const [showPassword, setShowPassword] = useState(false);
 
-  // Password change state
+  // Change Password Modal & Settings
+  const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
+  const [currentPasswordInput, setCurrentPasswordInput] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [securityMessage, setSecurityMessage] = useState<{ text: string; success: boolean } | null>(null);
 
-  // Tabs
+  // Studio Tabs
   const [activeTab, setActiveTab] = useState<'pricing' | 'home' | 'navigation' | 'sanity' | 'security'>('pricing');
   const [saveNotification, setSaveNotification] = useState<string | null>(null);
   const [syncStatus, setSyncStatus] = useState<{ loading: boolean; msg: string; success?: boolean } | null>(null);
@@ -52,26 +58,37 @@ export function SanityStudioPage() {
   const [configDraft, setConfigDraft] = useState(sanityConfig);
   const [homeDraft, setHomeDraft] = useState(home);
 
+  useEffect(() => {
+    setPricingDraft(pricing);
+  }, [pricing]);
+
   const notify = (msg: string) => {
     setSaveNotification(msg);
     setTimeout(() => setSaveNotification(null), 4000);
+  };
+
+  // Helper: get current stored password
+  const getStoredPassword = () => {
+    return localStorage.getItem(PASSWORD_STORAGE_KEY) || 'admin';
   };
 
   // Login handler
   const handleLogin = (e?: React.FormEvent) => {
     if (e) e.preventDefault();
     setAuthError(null);
+    setAuthSuccess(null);
 
     const storedPass = localStorage.getItem(PASSWORD_STORAGE_KEY);
     const validPasswords = storedPass ? [storedPass] : ['admin', 'admin123', 'talentpool365'];
 
     if (!usernameInput.trim()) {
-      setAuthError('Please enter a username.');
+      setAuthError('Please enter a username or email.');
       return;
     }
 
     if (validPasswords.includes(passwordInput.trim())) {
       try {
+        localStorage.setItem(USERNAME_STORAGE_KEY, usernameInput.trim());
         if (rememberMe) {
           localStorage.setItem(AUTH_STORAGE_KEY, 'true');
         } else {
@@ -82,6 +99,7 @@ export function SanityStudioPage() {
       }
       setIsAuthenticated(true);
       setAuthError(null);
+      setPasswordInput('');
     } else {
       setAuthError('Incorrect password. Default passwords: "admin" or "admin123".');
     }
@@ -90,11 +108,13 @@ export function SanityStudioPage() {
   // Quick 1-click test login
   const handleQuickLogin = () => {
     try {
+      localStorage.setItem(USERNAME_STORAGE_KEY, 'admin');
       localStorage.setItem(AUTH_STORAGE_KEY, 'true');
     } catch {
       // ignore
     }
     setIsAuthenticated(true);
+    setAuthError(null);
   };
 
   // Logout handler
@@ -107,17 +127,28 @@ export function SanityStudioPage() {
     }
     setIsAuthenticated(false);
     setPasswordInput('');
+    setIsPasswordModalOpen(false);
+    notify('🚪 You have successfully signed out of Studio.');
   };
 
-  // Change password handler
+  // Change password handler (works from Modal or Security Tab)
   const handleChangePassword = (e: React.FormEvent) => {
     e.preventDefault();
     setSecurityMessage(null);
+
+    const currentPass = getStoredPassword();
+
+    // If a password was previously set and is not empty, require current password verification
+    if (currentPasswordInput && currentPasswordInput !== currentPass && currentPass !== 'admin') {
+      setSecurityMessage({ text: 'Current password does not match.', success: false });
+      return;
+    }
 
     if (newPassword.length < 4) {
       setSecurityMessage({ text: 'New password must be at least 4 characters long.', success: false });
       return;
     }
+
     if (newPassword !== confirmPassword) {
       setSecurityMessage({ text: 'New password and confirmation do not match.', success: false });
       return;
@@ -125,12 +156,25 @@ export function SanityStudioPage() {
 
     try {
       localStorage.setItem(PASSWORD_STORAGE_KEY, newPassword);
-      setSecurityMessage({ text: 'Password successfully updated!', success: true });
+      setSecurityMessage({ text: '✅ Password successfully changed! Remember your new password.', success: true });
+      setCurrentPasswordInput('');
       setNewPassword('');
       setConfirmPassword('');
+      notify('🔑 Studio password successfully changed!');
+      setTimeout(() => {
+        setIsPasswordModalOpen(false);
+        setSecurityMessage(null);
+      }, 2000);
     } catch {
-      setSecurityMessage({ text: 'Could not save new password to storage.', success: false });
+      setSecurityMessage({ text: 'Could not save new password to browser storage.', success: false });
     }
+  };
+
+  // Reset password to default
+  const handleResetPasswordDefault = () => {
+    localStorage.removeItem(PASSWORD_STORAGE_KEY);
+    setSecurityMessage({ text: 'Password reset back to factory default: "admin"', success: true });
+    notify('Password reset to default ("admin")');
   };
 
   const handleSavePricing = () => {
@@ -245,13 +289,13 @@ export function SanityStudioPage() {
   };
 
   // ==========================================
-  // 1. IF NOT AUTHENTICATED: SHOW LOGIN SCREEN
+  // 1. IF NOT AUTHENTICATED: SHOW SIGN IN FORM
   // ==========================================
   if (!isAuthenticated) {
     return (
       <div
         style={{
-          minHeight: '75vh',
+          minHeight: '80vh',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
@@ -262,12 +306,12 @@ export function SanityStudioPage() {
       >
         <div
           style={{
-            maxWidth: 440,
+            maxWidth: 460,
             width: '100%',
             background: '#ffffff',
             borderRadius: 'var(--radius-lg)',
-            boxShadow: '0 20px 40px -15px rgba(18, 63, 59, 0.15), 0 0 1px 1px rgba(18, 63, 59, 0.08)',
-            padding: '40px 32px',
+            boxShadow: '0 25px 50px -12px rgba(18, 63, 59, 0.2), 0 0 1px 1px rgba(18, 63, 59, 0.08)',
+            padding: '40px 36px',
             border: '1px solid var(--color-border)',
           }}
         >
@@ -275,8 +319,8 @@ export function SanityStudioPage() {
           <div style={{ textAlign: 'center', marginBottom: 24 }}>
             <div
               style={{
-                width: 56,
-                height: 56,
+                width: 60,
+                height: 60,
                 borderRadius: '50%',
                 background: 'var(--color-outline-fill)',
                 color: 'var(--color-primary)',
@@ -284,31 +328,32 @@ export function SanityStudioPage() {
                 alignItems: 'center',
                 justifyContent: 'center',
                 marginBottom: 16,
+                boxShadow: '0 4px 12px rgba(18, 63, 59, 0.1)',
               }}
             >
-              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+              <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
                 <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
                 <path d="M7 11V7a5 5 0 0 1 10 0v4" />
               </svg>
             </div>
-            <h1 style={{ fontSize: '1.45rem', fontWeight: 800, color: 'var(--color-primary)', margin: 0 }}>
-              Studio Authentication
+            <h1 style={{ fontSize: '1.55rem', fontWeight: 800, color: 'var(--color-primary)', margin: 0 }}>
+              Studio Sign In
             </h1>
-            <p style={{ color: 'var(--color-text-muted)', fontSize: '0.88rem', marginTop: 6, lineHeight: 1.4 }}>
-              Sign in to manage TalentPool365 pricing, content, and Sanity CMS synchronization.
+            <p style={{ color: 'var(--color-text-muted)', fontSize: '0.9rem', marginTop: 6, lineHeight: 1.4 }}>
+              Sign in with your credentials to manage TalentPool365 pricing, content, and Sanity CMS synchronization.
             </p>
           </div>
 
-          {/* Error Message */}
+          {/* Feedback messages */}
           {authError && (
             <div
               style={{
-                padding: '10px 14px',
+                padding: '12px 14px',
                 borderRadius: 8,
                 background: '#FEF2F2',
                 border: '1px solid #FECACA',
                 color: '#DC2626',
-                fontSize: '0.85rem',
+                fontSize: '0.88rem',
                 fontWeight: 600,
                 marginBottom: 20,
               }}
@@ -317,10 +362,27 @@ export function SanityStudioPage() {
             </div>
           )}
 
+          {authSuccess && (
+            <div
+              style={{
+                padding: '12px 14px',
+                borderRadius: 8,
+                background: '#ECFDF5',
+                border: '1px solid #A7F3D0',
+                color: '#065F46',
+                fontSize: '0.88rem',
+                fontWeight: 600,
+                marginBottom: 20,
+              }}
+            >
+              {authSuccess}
+            </div>
+          )}
+
           {/* Login Form */}
           <form onSubmit={handleLogin}>
             <div style={{ marginBottom: 16 }}>
-              <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 700, color: 'var(--color-text)', marginBottom: 6 }}>
+              <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 700, color: 'var(--color-text)', marginBottom: 6 }}>
                 Username / Email
               </label>
               <input
@@ -331,7 +393,7 @@ export function SanityStudioPage() {
                 autoComplete="username"
                 style={{
                   width: '100%',
-                  padding: '11px 14px',
+                  padding: '12px 14px',
                   borderRadius: 8,
                   border: '1px solid var(--color-border)',
                   fontSize: '0.95rem',
@@ -343,7 +405,7 @@ export function SanityStudioPage() {
 
             <div style={{ marginBottom: 18 }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
-                <label style={{ fontSize: '0.82rem', fontWeight: 700, color: 'var(--color-text)' }}>
+                <label style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--color-text)' }}>
                   Password
                 </label>
                 <button
@@ -352,10 +414,10 @@ export function SanityStudioPage() {
                   style={{
                     background: 'transparent',
                     border: 'none',
-                    fontSize: '0.78rem',
+                    fontSize: '0.8rem',
                     color: 'var(--color-secondary)',
                     cursor: 'pointer',
-                    fontWeight: 600,
+                    fontWeight: 700,
                   }}
                 >
                   {showPassword ? 'Hide' : 'Show'}
@@ -369,7 +431,7 @@ export function SanityStudioPage() {
                 autoComplete="current-password"
                 style={{
                   width: '100%',
-                  padding: '11px 14px',
+                  padding: '12px 14px',
                   borderRadius: 8,
                   border: '1px solid var(--color-border)',
                   fontSize: '0.95rem',
@@ -380,7 +442,7 @@ export function SanityStudioPage() {
             </div>
 
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 22 }}>
-              <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: '0.82rem', color: 'var(--color-text-muted)', cursor: 'pointer' }}>
+              <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: '0.84rem', color: 'var(--color-text-muted)', cursor: 'pointer' }}>
                 <input
                   type="checkbox"
                   checked={rememberMe}
@@ -390,6 +452,7 @@ export function SanityStudioPage() {
               </label>
             </div>
 
+            {/* Primary Sign In Button */}
             <button
               type="submit"
               style={{
@@ -400,26 +463,34 @@ export function SanityStudioPage() {
                 color: '#ffffff',
                 border: 'none',
                 fontWeight: 700,
-                fontSize: '0.98rem',
+                fontSize: '1.02rem',
                 cursor: 'pointer',
-                boxShadow: '0 4px 12px rgba(18, 63, 59, 0.2)',
-                transition: 'background 0.2s ease',
+                boxShadow: '0 4px 14px rgba(18, 63, 59, 0.25)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: 8,
               }}
             >
-              Sign In to Studio
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4" />
+                <polyline points="10 17 15 12 10 7" />
+                <line x1="15" y1="12" x2="3" y2="12" />
+              </svg>
+              <span>Sign In to Studio</span>
             </button>
           </form>
 
-          {/* Quick Demo Login Option */}
-          <div style={{ marginTop: 20, paddingTop: 18, borderTop: '1px solid var(--color-border)', textAlign: 'center' }}>
+          {/* Quick Demo Login Option & Forgot Password Reset */}
+          <div style={{ marginTop: 22, paddingTop: 18, borderTop: '1px solid var(--color-border)', textAlign: 'center' }}>
             <div
               style={{
                 display: 'inline-block',
                 background: 'var(--color-bg-light)',
                 border: '1px solid var(--color-border)',
                 borderRadius: 6,
-                padding: '6px 12px',
-                fontSize: '0.75rem',
+                padding: '6px 14px',
+                fontSize: '0.78rem',
                 color: 'var(--color-text-muted)',
                 marginBottom: 12,
               }}
@@ -427,22 +498,43 @@ export function SanityStudioPage() {
               Default login: <strong>admin</strong> / password: <strong>admin</strong>
             </div>
 
-            <div>
+            <div style={{ display: 'flex', gap: 10, justifyContent: 'center' }}>
               <button
                 type="button"
                 onClick={handleQuickLogin}
                 style={{
+                  background: 'var(--color-outline-fill)',
+                  border: '1px solid var(--color-secondary)',
+                  color: 'var(--color-primary)',
+                  padding: '8px 16px',
+                  borderRadius: 6,
+                  fontSize: '0.84rem',
+                  fontWeight: 700,
+                  cursor: 'pointer',
+                }}
+              >
+                ⚡ 1-Click Sign In
+              </button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  localStorage.removeItem(PASSWORD_STORAGE_KEY);
+                  setAuthSuccess('Password reset back to default: "admin"');
+                  setAuthError(null);
+                }}
+                style={{
                   background: 'transparent',
                   border: '1px solid var(--color-border)',
-                  color: 'var(--color-secondary)',
-                  padding: '7px 16px',
+                  color: 'var(--color-text-muted)',
+                  padding: '8px 14px',
                   borderRadius: 6,
                   fontSize: '0.82rem',
                   fontWeight: 600,
                   cursor: 'pointer',
                 }}
               >
-                ⚡ 1-Click Quick Access
+                Reset Password to Default
               </button>
             </div>
           </div>
@@ -454,8 +546,157 @@ export function SanityStudioPage() {
   // ==========================================
   // 2. AUTHENTICATED: RENDER FULL STUDIO
   // ==========================================
+  const currentUser = localStorage.getItem(USERNAME_STORAGE_KEY) || 'admin';
+
   return (
     <div style={{ maxWidth: 1200, margin: '0 auto', padding: '40px 24px', fontFamily: 'var(--font-body)' }}>
+      {/* CHANGE PASSWORD POPUP MODAL */}
+      {isPasswordModalOpen && (
+        <div
+          style={{
+            position: 'fixed',
+            inset: 0,
+            background: 'rgba(18, 63, 59, 0.45)',
+            backdropFilter: 'blur(4px)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 9999,
+            padding: 20,
+          }}
+        >
+          <div
+            style={{
+              background: '#fff',
+              maxWidth: 460,
+              width: '100%',
+              borderRadius: 'var(--radius-lg)',
+              boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
+              padding: '32px 28px',
+              border: '1px solid var(--color-border)',
+            }}
+          >
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <span style={{ fontSize: '1.4rem' }}>🔑</span>
+                <h3 style={{ fontSize: '1.25rem', fontWeight: 800, color: 'var(--color-primary)', margin: 0 }}>
+                  Change Studio Password
+                </h3>
+              </div>
+              <button
+                onClick={() => {
+                  setIsPasswordModalOpen(false);
+                  setSecurityMessage(null);
+                }}
+                style={{ background: 'transparent', border: 'none', fontSize: '1.4rem', color: '#9CA3AF', cursor: 'pointer' }}
+              >
+                ×
+              </button>
+            </div>
+
+            <p style={{ color: 'var(--color-text-muted)', fontSize: '0.88rem', marginBottom: 20 }}>
+              Update the password required to access this Studio and edit website contents.
+            </p>
+
+            {securityMessage && (
+              <div
+                style={{
+                  padding: '10px 14px',
+                  borderRadius: 6,
+                  background: securityMessage.success ? '#DCFCE7' : '#FEF2F2',
+                  border: `1px solid ${securityMessage.success ? '#86EFAC' : '#FECACA'}`,
+                  color: securityMessage.success ? '#166534' : '#DC2626',
+                  fontSize: '0.85rem',
+                  fontWeight: 600,
+                  marginBottom: 16,
+                }}
+              >
+                {securityMessage.text}
+              </div>
+            )}
+
+            <form onSubmit={handleChangePassword}>
+              <div style={{ marginBottom: 14 }}>
+                <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 700, marginBottom: 6 }}>
+                  New Password
+                </label>
+                <input
+                  type="password"
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                  placeholder="At least 4 characters"
+                  required
+                  style={{ width: '100%', padding: '10px 12px', borderRadius: 6, border: '1px solid var(--color-border)', fontSize: '0.95rem', boxSizing: 'border-box' }}
+                />
+              </div>
+
+              <div style={{ marginBottom: 20 }}>
+                <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 700, marginBottom: 6 }}>
+                  Confirm New Password
+                </label>
+                <input
+                  type="password"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  placeholder="Re-enter new password"
+                  required
+                  style={{ width: '100%', padding: '10px 12px', borderRadius: 6, border: '1px solid var(--color-border)', fontSize: '0.95rem', boxSizing: 'border-box' }}
+                />
+              </div>
+
+              <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end', flexWrap: 'wrap' }}>
+                <button
+                  type="button"
+                  onClick={handleResetPasswordDefault}
+                  style={{
+                    padding: '9px 14px',
+                    borderRadius: 6,
+                    background: '#F3F4F6',
+                    border: '1px solid var(--color-border)',
+                    fontSize: '0.82rem',
+                    fontWeight: 600,
+                    color: '#4B5563',
+                    cursor: 'pointer',
+                  }}
+                >
+                  Reset to "admin"
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setIsPasswordModalOpen(false)}
+                  style={{
+                    padding: '9px 16px',
+                    borderRadius: 6,
+                    background: '#fff',
+                    border: '1px solid var(--color-border)',
+                    fontSize: '0.85rem',
+                    fontWeight: 600,
+                    cursor: 'pointer',
+                  }}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  style={{
+                    padding: '9px 20px',
+                    borderRadius: 6,
+                    background: 'var(--color-primary)',
+                    color: '#fff',
+                    border: 'none',
+                    fontWeight: 700,
+                    fontSize: '0.88rem',
+                    cursor: 'pointer',
+                  }}
+                >
+                  Save New Password
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
       {/* Top Banner / Breadcrumb & User Bar */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 28, flexWrap: 'wrap', gap: 16 }}>
         <div>
@@ -482,25 +723,77 @@ export function SanityStudioPage() {
           </p>
         </div>
 
+        {/* TOP ACTION BAR: USER, CHANGE PASSWORD & SIGN OUT */}
         <div style={{ display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap' }}>
+          {/* Active User Badge */}
           <div
             style={{
               display: 'flex',
               alignItems: 'center',
               gap: 6,
-              background: 'var(--color-bg-light)',
-              border: '1px solid var(--color-border)',
+              background: '#ECFDF5',
+              border: '1px solid #A7F3D0',
               borderRadius: 'var(--radius)',
-              padding: '6px 12px',
-              fontSize: '0.82rem',
-              fontWeight: 600,
-              color: 'var(--color-text)',
+              padding: '7px 14px',
+              fontSize: '0.85rem',
+              fontWeight: 700,
+              color: '#065F46',
             }}
           >
             <span style={{ width: 8, height: 8, borderRadius: '50%', background: '#10B981' }}></span>
-            <span>Admin</span>
+            <span>Signed in: {currentUser}</span>
           </div>
 
+          {/* Change Password Button */}
+          <button
+            onClick={() => setIsPasswordModalOpen(true)}
+            title="Change Studio Admin Password"
+            style={{
+              padding: '8px 16px',
+              borderRadius: 'var(--radius)',
+              border: '1px solid var(--color-border)',
+              background: '#fff',
+              fontSize: '0.88rem',
+              fontWeight: 700,
+              color: 'var(--color-primary)',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: 6,
+              boxShadow: 'var(--shadow-sm)',
+            }}
+          >
+            🔑 Change Password
+          </button>
+
+          {/* Prominent Sign Out Button */}
+          <button
+            onClick={handleLogout}
+            title="Sign out and lock Studio"
+            style={{
+              padding: '8px 18px',
+              borderRadius: 'var(--radius)',
+              border: '1px solid #FECACA',
+              background: '#FEF2F2',
+              fontSize: '0.88rem',
+              fontWeight: 700,
+              color: '#DC2626',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: 6,
+              boxShadow: 'var(--shadow-sm)',
+            }}
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+              <polyline points="16 17 21 12 16 7" />
+              <line x1="21" y1="12" x2="9" y2="12" />
+            </svg>
+            <span>Sign Out</span>
+          </button>
+
+          {/* Previews */}
           <a
             href="/pricing"
             target="_blank"
@@ -537,13 +830,14 @@ export function SanityStudioPage() {
           </a>
           <button
             onClick={() => {
-              if (confirm('Reset all content back to factory defaults?')) {
+              if (confirm('Reset all website content back to factory defaults?')) {
                 resetDefaults();
                 setPricingDraft(pricing);
                 setHomeDraft(home);
-                notify('Content reset to defaults.');
+                notify('Content reset to factory defaults.');
               }
             }}
+            title="Reset pricing and content back to defaults"
             style={{
               padding: '8px 14px',
               borderRadius: 'var(--radius)',
@@ -555,26 +849,7 @@ export function SanityStudioPage() {
               cursor: 'pointer',
             }}
           >
-            Reset
-          </button>
-          <button
-            onClick={handleLogout}
-            title="Lock and sign out of Studio"
-            style={{
-              padding: '8px 16px',
-              borderRadius: 'var(--radius)',
-              border: '1px solid var(--color-border)',
-              background: '#ffffff',
-              fontSize: '0.85rem',
-              fontWeight: 600,
-              color: '#4B5563',
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              gap: 6,
-            }}
-          >
-            🔒 Sign Out
+            Reset Defaults
           </button>
         </div>
       </div>
@@ -685,7 +960,7 @@ export function SanityStudioPage() {
             whiteSpace: 'nowrap',
           }}
         >
-          🔐 Studio Security
+          🔐 Studio Security & Password
         </button>
       </div>
 
@@ -1288,15 +1563,37 @@ export function SanityStudioPage() {
       {/* TAB 5: STUDIO SECURITY */}
       {activeTab === 'security' && (
         <div style={{ background: '#fff', padding: 28, borderRadius: 'var(--radius-lg)', border: '1px solid var(--color-border)' }}>
-          <h2 style={{ fontSize: '1.3rem', fontWeight: 700, color: 'var(--color-primary)', marginBottom: 8 }}>
-            Studio Security & Access Control
-          </h2>
-          <p style={{ color: 'var(--color-text-muted)', fontSize: '0.9rem', marginBottom: 24 }}>
-            Control authentication credentials to protect your Content Studio and pricing from unauthorized edits.
-          </p>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12, flexWrap: 'wrap', gap: 12 }}>
+            <div>
+              <h2 style={{ fontSize: '1.3rem', fontWeight: 700, color: 'var(--color-primary)' }}>
+                Studio Security & Password Management
+              </h2>
+              <p style={{ color: 'var(--color-text-muted)', fontSize: '0.9rem' }}>
+                Control authentication credentials to protect your Content Studio and website pricing.
+              </p>
+            </div>
+            <button
+              onClick={() => setIsPasswordModalOpen(true)}
+              style={{
+                padding: '10px 20px',
+                borderRadius: 'var(--radius)',
+                background: 'var(--color-primary)',
+                color: '#fff',
+                border: 'none',
+                fontWeight: 700,
+                fontSize: '0.9rem',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: 6,
+              }}
+            >
+              🔑 Open Password Change Dialog
+            </button>
+          </div>
 
-          <div style={{ maxWidth: 500, background: 'var(--color-bg-light)', padding: 24, borderRadius: 'var(--radius)', border: '1px solid var(--color-border)' }}>
-            <h3 style={{ fontSize: '1.1rem', fontWeight: 700, marginBottom: 16 }}>Change Studio Password</h3>
+          <div style={{ maxWidth: 520, background: 'var(--color-bg-light)', padding: 24, borderRadius: 'var(--radius)', border: '1px solid var(--color-border)', marginTop: 20 }}>
+            <h3 style={{ fontSize: '1.1rem', fontWeight: 700, marginBottom: 16 }}>Set New Admin Password</h3>
 
             {securityMessage && (
               <div
@@ -1342,11 +1639,11 @@ export function SanityStudioPage() {
                 />
               </div>
 
-              <div style={{ display: 'flex', gap: 10 }}>
+              <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
                 <button
                   type="submit"
                   style={{
-                    padding: '10px 20px',
+                    padding: '10px 22px',
                     borderRadius: 6,
                     background: 'var(--color-primary)',
                     color: '#fff',
@@ -1356,14 +1653,11 @@ export function SanityStudioPage() {
                     cursor: 'pointer',
                   }}
                 >
-                  Update Password
+                  Save New Password
                 </button>
                 <button
                   type="button"
-                  onClick={() => {
-                    localStorage.removeItem(PASSWORD_STORAGE_KEY);
-                    setSecurityMessage({ text: 'Password reset back to default: "admin"', success: true });
-                  }}
+                  onClick={handleResetPasswordDefault}
                   style={{
                     padding: '10px 16px',
                     borderRadius: 6,

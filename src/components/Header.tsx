@@ -216,6 +216,9 @@ export function Header() {
           <a className="link-quiet" href="/support">
             Support
           </a>
+          <a className="link-quiet" href="/studio" title="Open Studio CMS">
+            Studio
+          </a>
           <a className="btn btn-primary btn--sm" href="/get-started">
             Book a demo
           </a>
