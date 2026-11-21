@@ -1,0 +1,135 @@
+/* GROQ Queries to fetch website content from Sanity CMS */
+
+export const homePageQuery = `*[_type == "home"][0]{
+  heroRoles,
+  heroProof,
+  heroStages,
+  companyLogos,
+  agents,
+  products,
+  interviewSplit,
+  industries,
+  steps,
+  metrics,
+  switchRows,
+  caseStudies,
+  timeline,
+  values,
+  hires,
+  faqs
+}`;
+
+export const navigationQuery = `*[_type == "navigation"][0]{
+  navItems[]{
+    id,
+    label,
+    href,
+    match,
+    intro{
+      title,
+      blurb,
+      image
+    },
+    links[]{
+      label,
+      href,
+      desc
+    }
+  },
+  footerColumns[]{
+    title,
+    links[]{
+      label,
+      href
+    }
+  },
+  footerLegalLinks[]{
+    label,
+    href
+  }
+}`;
+
+export const productsQuery = `*[_type == "product"] | order(order asc){
+  slug,
+  title,
+  icon,
+  mock,
+  bot,
+  summary,
+  headline,
+  lede,
+  sectionIntro,
+  capabilities[]{
+    id,
+    title,
+    tagline,
+    body,
+    points
+  },
+  outcomes[]{
+    value,
+    label
+  },
+  kind,
+  closingCta
+}`;
+
+export const productBySlugQuery = `*[_type == "product" && slug == $slug][0]{
+  slug,
+  title,
+  icon,
+  mock,
+  bot,
+  summary,
+  headline,
+  lede,
+  sectionIntro,
+  capabilities[]{
+    id,
+    title,
+    tagline,
+    body,
+    points
+  },
+  outcomes[]{
+    value,
+    label
+  },
+  kind,
+  closingCta
+}`;
+
+export const caseStudiesQuery = `*[_type == "caseStudy"] | order(_createdAt desc){
+  id,
+  company,
+  industry,
+  size,
+  useCase,
+  title,
+  challenge,
+  solution,
+  featuresUsed,
+  results[]{
+    stat,
+    label
+  },
+  bulletResults,
+  quote{
+    text,
+    author,
+    role
+  },
+  whatsNext
+}`;
+
+export const blogPostsQuery = `*[_type == "post"] | order(date desc){
+  id,
+  title,
+  tagline,
+  category,
+  readTime,
+  date,
+  author,
+  summary,
+  paragraphs
+}`;
