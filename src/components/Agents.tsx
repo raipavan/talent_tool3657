@@ -662,7 +662,7 @@ export function Agents() {
       <div className="agents-pin">
         <div className="container agents-head">
           <div>
-            <h2>{accent(copy.title || 'Five *Agentic AI Agents* in Our AI Recruitment Tools Work Every Requisition')}</h2>
+            <h2>{accent(copy.title || 'Five *Agentic AI Agents* in Our AI Recruitment Tool Work Every Requisition')}</h2>
             <p className="agents-sub">
               {copy.subtitle ||
                 'Each one finishes its part and hands the candidates on. Your recruiters step in where judgment matters.'}

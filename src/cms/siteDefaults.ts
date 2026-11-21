@@ -734,7 +734,7 @@ export const defaultSiteContent: SiteContentModel = {
     },
     logosLabel: 'Trusted by talent teams at',
     agentsSection: {
-      title: 'Five *Agentic AI Agents* in Our AI Recruitment Tools Work Every Requisition',
+      title: 'Five *Agentic AI Agents* in Our AI Recruitment Tool Work Every Requisition',
       subtitle: 'Each one finishes its part and hands the candidates on. Your recruiters step in where judgment matters.',
       poolLabel: 'Talent pool: every other profile stays warm for the next role',
       scrollHint: 'Scroll to run the requisition',
