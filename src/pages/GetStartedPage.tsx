@@ -3,6 +3,7 @@ import { DemoVideo } from '../components/DemoVideo';
 import { LeadForm } from '../components/LeadForm';
 import { Icon } from '../components/Icon';
 import { SkCtaBanner, SkLogoMarquee } from '../components/SeekOutUI';
+import { usePageOverride } from '../sanity/SanityProvider';
 
 const intents = [
   {
@@ -34,6 +35,7 @@ const intents = [
 export function GetStartedPage() {
   const hash = useHash();
   const intent = intents.find((item) => `#${item.id}` === hash) ?? intents[0];
+  const override = usePageOverride('/get-started');
 
   return (
     <main className="sk-page">
@@ -43,12 +45,16 @@ export function GetStartedPage() {
           <div className="sk-hero-grid sk-hero-grid--wide" style={{ alignItems: 'start' }}>
             <div>
               <span className="sk-eyebrow">
-                <Icon name="rocket" /> LIVE PLATFORM WALKTHROUGH
+                <Icon name="rocket" /> {override?.eyebrow || 'LIVE PLATFORM WALKTHROUGH'}
               </span>
               <h1 className="sk-hero-title">
-                See it run on a role <span className="accent">you&apos;re hiring for.</span>
+                {override?.headline || override?.title ? (
+                  override.headline || override.title
+                ) : (
+                  <>See it run on a role <span className="accent">you&apos;re hiring for.</span></>
+                )}
               </h1>
-              <p className="sk-hero-sub">{intent.body}</p>
+              <p className="sk-hero-sub">{override?.lede || intent.body}</p>
 
               {/* Floating Candidate Match UI Preview Card (SeekOut /requestdemo/) */}
               <div

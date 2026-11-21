@@ -12,6 +12,7 @@ import { Reveal } from '../components/Reveal';
 import { SectionHead } from '../components/SectionHead';
 import { SkHero, SkVectorArt } from '../components/SeekOutUI';
 import { SubNav } from '../components/SubNav';
+import { usePageOverride } from '../sanity/SanityProvider';
 import {
   benefits,
   buildingBlocks,
@@ -47,15 +48,26 @@ interface CompanyShellProps {
 
 /** Shared frame of the seven company pages: hero plus the company navigation. */
 function CompanyShell({ path, label, title, lede, children }: CompanyShellProps) {
+  const override = usePageOverride(path);
+  const displayTitle = (override?.headline || override?.title || title).replace(/\*/g, '');
+  const displayLede = override?.lede || lede;
+  const displayEyebrow = override?.eyebrow || `COMPANY · ${label.toUpperCase()}`;
+  const displayPrimaryCta = override?.primaryCtaText
+    ? { label: override.primaryCtaText, href: override.primaryCtaHref || '/get-started#book-meeting' }
+    : { label: 'Book a demo →', href: '/get-started#book-meeting' };
+  const displaySecondaryCta = override?.secondaryCtaText
+    ? { label: override.secondaryCtaText, href: override.secondaryCtaHref || '/company/contact' }
+    : { label: 'Contact us', href: '/company/contact' };
+
   return (
     <main className="sk-page">
       <SkHero
-        eyebrow={`COMPANY · ${label.toUpperCase()}`}
+        eyebrow={displayEyebrow}
         eyebrowIcon="building"
-        title={title.replace(/\*/g, '')}
-        subtitle={lede}
-        primaryCta={{ label: 'Book a demo →', href: '/get-started#book-meeting' }}
-        secondaryCta={{ label: 'Contact us', href: '/company/contact' }}
+        title={displayTitle}
+        subtitle={displayLede}
+        primaryCta={displayPrimaryCta}
+        secondaryCta={displaySecondaryCta}
         aside={<SkVectorArt kind="about" />}
       />
       <SubNav label="Company pages" links={companyLinks} current={path} />

@@ -1,6 +1,7 @@
 import { Icon } from '../components/Icon';
 import { Reveal } from '../components/Reveal';
 import { SkCtaBanner, SkHero, SkVectorArt } from '../components/SeekOutUI';
+import { usePageOverride } from '../sanity/SanityProvider';
 
 const workflow = [
   { title: 'Create job requisition', owner: 'Your hiring team', body: 'Agree on the role, the must-have skills and what good looks like before applications arrive. Set the scorecard and approval owners together.', output: 'An approved role and a shared evaluation rubric', href: '/products/recruiter-workspace' },
@@ -15,15 +16,26 @@ const workflow = [
 ];
 
 export function HowItWorksPage() {
+  const override = usePageOverride('/how-it-works');
+  const title = (override?.headline || override?.title || 'From an open role to a first day').replace(/\*/g, '');
+  const subtitle = override?.lede || 'One connected workflow, nine clear steps. Agentic AI handles the repetitive busywork while your recruiting team and hiring managers own every human decision.';
+  const eyebrow = override?.eyebrow || 'NINE-STEP WORKFLOW';
+  const primaryCta = override?.primaryCtaText
+    ? { label: override.primaryCtaText, href: override.primaryCtaHref || '/get-started' }
+    : { label: 'Walk through your process →', href: '/get-started' };
+  const secondaryCta = override?.secondaryCtaText
+    ? { label: override.secondaryCtaText, href: override.secondaryCtaHref || '/products' }
+    : { label: 'Explore products', href: '/products' };
+
   return (
     <main className="sk-page">
       <SkHero
-        eyebrow="NINE-STEP WORKFLOW"
+        eyebrow={eyebrow}
         eyebrowIcon="sliders"
-        title="From an open role to a first day"
-        subtitle="One connected workflow, nine clear steps. Agentic AI handles the repetitive busywork while your recruiting team and hiring managers own every human decision."
-        primaryCta={{ label: 'Walk through your process →', href: '/get-started' }}
-        secondaryCta={{ label: 'Explore products', href: '/products' }}
+        title={title}
+        subtitle={subtitle}
+        primaryCta={primaryCta}
+        secondaryCta={secondaryCta}
         aside={<SkVectorArt kind="how-it-works" />}
       />
 

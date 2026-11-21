@@ -7,6 +7,7 @@ import { Icon } from '../components/Icon';
 import { SectionHead } from '../components/SectionHead';
 import { SkCtaBanner, SkHero, SkVectorArt } from '../components/SeekOutUI';
 import { resources } from '../data/resources';
+import { usePageOverride } from '../sanity/SanityProvider';
 
 const glossary = [
   ['ATS', 'Applicant tracking system: the core software used by HR to post jobs, store candidate resumes, and manage recruitment pipeline stages.'],
@@ -160,14 +161,19 @@ export function ResourcesPage() {
       `${item.title} ${item.intro} ${item.type}`.toLowerCase().includes(query.trim().toLowerCase())
   );
 
+  const override = usePageOverride('/resources');
+  const title = (override?.headline || override?.title || 'TalentPool365 Resource Hub').replace(/\*/g, '');
+  const subtitle = override?.lede || 'Practical Agentic AI recruitment playbooks, evaluation frameworks, checklists, and plain-language guides — open to read with zero gated forms.';
+  const eyebrow = override?.eyebrow || 'RESOURCES';
+
   return (
     <main className="sk-page">
       <SkHero
         centered
-        eyebrow="RESOURCES"
+        eyebrow={eyebrow}
         eyebrowIcon="file-check"
-        title="TalentPool365 Resource Hub"
-        subtitle="Practical Agentic AI recruitment playbooks, evaluation frameworks, checklists, and plain-language guides — open to read with zero gated forms."
+        title={title}
+        subtitle={subtitle}
       >
         <div className="sk-hero-search-wrap">
           <span className="sk-hero-search-icon" aria-hidden="true">
@@ -320,14 +326,19 @@ export function BlogPage() {
     return matchCat && matchSearch;
   });
 
+  const override = usePageOverride('/blog');
+  const title = (override?.headline || override?.title || 'Insights, guides and ideas for smarter hiring').replace(/\*/g, '');
+  const subtitle = override?.lede || 'Practical advice for recruiters, HR leaders, and hiring managers. Learn how to source better, screen faster, interview fairly, and make Agentic AI work for your team.';
+  const eyebrow = override?.eyebrow || 'RECRUITMENT BLOG';
+
   return (
     <main className="sk-page">
       <SkHero
         centered
-        eyebrow="RECRUITMENT BLOG"
+        eyebrow={eyebrow}
         eyebrowIcon="megaphone"
-        title="Insights, guides and ideas for smarter hiring"
-        subtitle="Practical advice for recruiters, HR leaders, and hiring managers. Learn how to source better, screen faster, interview fairly, and make Agentic AI work for your team."
+        title={title}
+        subtitle={subtitle}
       >
         <div className="sk-hero-search-wrap">
           <span className="sk-hero-search-icon" aria-hidden="true">

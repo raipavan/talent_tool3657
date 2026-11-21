@@ -38,6 +38,20 @@ export interface PricingContentModel {
   faqs: PricingFAQ[];
 }
 
+export interface PageContentOverride {
+  title?: string;
+  eyebrow?: string;
+  headline?: string;
+  lede?: string;
+  primaryCtaText?: string;
+  primaryCtaHref?: string;
+  secondaryCtaText?: string;
+  secondaryCtaHref?: string;
+  sectionTitle?: string;
+  sectionBody?: string;
+  features?: string[];
+}
+
 export interface SanityConfigState {
   projectId: string;
   dataset: string;
@@ -159,6 +173,7 @@ const STORAGE_KEY_PRICING = 'tp365_cms_pricing';
 const STORAGE_KEY_HOME = 'tp365_cms_home';
 const STORAGE_KEY_NAV = 'tp365_cms_nav';
 const STORAGE_KEY_CONFIG = 'tp365_cms_config';
+const STORAGE_KEY_OVERRIDES = 'tp365_cms_page_overrides';
 
 interface SanityContextType {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -166,6 +181,7 @@ interface SanityContextType {
   pricing: PricingContentModel;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   navigation: any;
+  pageOverrides: Record<string, PageContentOverride>;
   isSanityLive: boolean;
   sanityConfig: SanityConfigState;
   updatePricing: (newPricing: PricingContentModel) => void;
@@ -173,6 +189,7 @@ interface SanityContextType {
   updateHome: (newHome: any) => void;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   updateNavigation: (newNav: any) => void;
+  updatePageOverride: (pageKey: string, override: Partial<PageContentOverride>) => void;
   updateSanityConfig: (config: SanityConfigState) => void;
   resetDefaults: () => void;
   pushToSanity: () => Promise<{ success: boolean; message: string }>;
@@ -182,6 +199,7 @@ const SanityContext = createContext<SanityContextType>({
   home: homeDefault,
   pricing: defaultPricingData,
   navigation: navigationDefault,
+  pageOverrides: {},
   isSanityLive: false,
   sanityConfig: {
     projectId: import.meta.env.VITE_SANITY_PROJECT_ID || '',
@@ -192,6 +210,7 @@ const SanityContext = createContext<SanityContextType>({
   updatePricing: () => {},
   updateHome: () => {},
   updateNavigation: () => {},
+  updatePageOverride: () => {},
   updateSanityConfig: () => {},
   resetDefaults: () => {},
   pushToSanity: async () => ({ success: false, message: 'Not initialized' }),
@@ -223,6 +242,15 @@ export function SanityProvider({ children }: { children: ReactNode }) {
       return saved ? JSON.parse(saved) : navigationDefault;
     } catch {
       return navigationDefault;
+    }
+  });
+
+  const [pageOverrides, setPageOverrides] = useState<Record<string, PageContentOverride>>(() => {
+    try {
+      const saved = localStorage.getItem(STORAGE_KEY_OVERRIDES);
+      return saved ? JSON.parse(saved) : {};
+    } catch {
+      return {};
     }
   });
 
@@ -300,6 +328,21 @@ export function SanityProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  const updatePageOverride = (pageKey: string, override: Partial<PageContentOverride>) => {
+    setPageOverrides((prev) => {
+      const next = {
+        ...prev,
+        [pageKey]: { ...(prev[pageKey] || {}), ...override },
+      };
+      try {
+        localStorage.setItem(STORAGE_KEY_OVERRIDES, JSON.stringify(next));
+      } catch {
+        // ignore
+      }
+      return next;
+    });
+  };
+
   const updateSanityConfig = (newConfig: SanityConfigState) => {
     setSanityConfig(newConfig);
     try {
@@ -313,10 +356,12 @@ export function SanityProvider({ children }: { children: ReactNode }) {
     setPricing(defaultPricingData);
     setHome(homeDefault);
     setNavigation(navigationDefault);
+    setPageOverrides({});
     try {
       localStorage.removeItem(STORAGE_KEY_PRICING);
       localStorage.removeItem(STORAGE_KEY_HOME);
       localStorage.removeItem(STORAGE_KEY_NAV);
+      localStorage.removeItem(STORAGE_KEY_OVERRIDES);
     } catch {
       // ignore
     }
@@ -407,11 +452,13 @@ export function SanityProvider({ children }: { children: ReactNode }) {
         home,
         pricing,
         navigation,
+        pageOverrides,
         isSanityLive,
         sanityConfig,
         updatePricing,
         updateHome,
         updateNavigation,
+        updatePageOverride,
         updateSanityConfig,
         resetDefaults,
         pushToSanity,
@@ -436,4 +483,9 @@ export function useHomeContent() {
 
 export function useNavigationContent() {
   return useContext(SanityContext).navigation;
+}
+
+export function usePageOverride(pageKey: string): PageContentOverride | null {
+  const { pageOverrides } = useContext(SanityContext);
+  return pageOverrides[pageKey] || null;
 }

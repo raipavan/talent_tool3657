@@ -5,7 +5,6 @@ import { productPages } from '../data/products';
 const AUTH_STORAGE_KEY = 'tp365_studio_authenticated';
 const PASSWORD_STORAGE_KEY = 'tp365_studio_password';
 const USERNAME_STORAGE_KEY = 'tp365_studio_username';
-const PAGE_OVERRIDES_STORAGE_KEY = 'tp365_cms_page_overrides';
 
 export interface PageItem {
   id: string;
@@ -272,11 +271,13 @@ export function SanityStudioPage() {
     pricing,
     home,
     navigation,
+    pageOverrides,
     isSanityLive,
     sanityConfig,
     updatePricing,
     updateHome,
     updateNavigation,
+    updatePageOverride,
     updateSanityConfig,
     resetDefaults,
     pushToSanity,
@@ -321,19 +322,24 @@ export function SanityStudioPage() {
 
   // Quick Edit Page Modal
   const [editingPage, setEditingPage] = useState<PageItem | null>(null);
-  const [pageOverrides, setPageOverrides] = useState<Record<string, { title?: string; headline?: string; lede?: string; ctaText?: string }>>(() => {
-    try {
-      const saved = localStorage.getItem(PAGE_OVERRIDES_STORAGE_KEY);
-      return saved ? JSON.parse(saved) : {};
-    } catch {
-      return {};
-    }
-  });
-  const [editFormDraft, setEditFormDraft] = useState<{ title: string; headline: string; lede: string; ctaText: string }>({
+  const [editFormDraft, setEditFormDraft] = useState<{
+    title: string;
+    eyebrow: string;
+    headline: string;
+    lede: string;
+    primaryCtaText: string;
+    primaryCtaHref: string;
+    secondaryCtaText: string;
+    secondaryCtaHref: string;
+  }>({
     title: '',
+    eyebrow: '',
     headline: '',
     lede: '',
-    ctaText: '',
+    primaryCtaText: '',
+    primaryCtaHref: '',
+    secondaryCtaText: '',
+    secondaryCtaHref: '',
   });
 
   // Local drafts
@@ -461,29 +467,18 @@ export function SanityStudioPage() {
     notify('Password reset to default ("admin")');
   };
 
-  // Open Quick Edit for a Page
+  // Open End-to-End Edit for any Page
   const openPageEditor = (page: PageItem) => {
-    if (page.editableSection === 'pricing') {
-      setActiveTab('pricing');
-      return;
-    }
-    if (page.editableSection === 'home') {
-      setActiveTab('home');
-      return;
-    }
-    if (page.editableSection === 'product') {
-      const slug = page.path.replace('/products/', '');
-      setSelectedProductSlug(slug);
-      setActiveTab('products');
-      return;
-    }
-
-    const currentSaved = pageOverrides[page.id] || {};
+    const currentSaved = pageOverrides[page.path] || pageOverrides[page.id] || {};
     setEditFormDraft({
       title: currentSaved.title || page.title,
+      eyebrow: currentSaved.eyebrow || (page.category === 'Core' ? 'TALENTPOOL365' : page.category.toUpperCase()),
       headline: currentSaved.headline || page.title,
       lede: currentSaved.lede || page.description,
-      ctaText: currentSaved.ctaText || 'Get Started',
+      primaryCtaText: currentSaved.primaryCtaText || 'Book a demo →',
+      primaryCtaHref: currentSaved.primaryCtaHref || '/get-started#book-meeting',
+      secondaryCtaText: currentSaved.secondaryCtaText || 'Explore platform',
+      secondaryCtaHref: currentSaved.secondaryCtaHref || '/products',
     });
     setEditingPage(page);
   };
@@ -492,18 +487,44 @@ export function SanityStudioPage() {
     e.preventDefault();
     if (!editingPage) return;
 
-    const nextOverrides = {
-      ...pageOverrides,
-      [editingPage.id]: editFormDraft,
-    };
-    setPageOverrides(nextOverrides);
-    try {
-      localStorage.setItem(PAGE_OVERRIDES_STORAGE_KEY, JSON.stringify(nextOverrides));
-    } catch {
-      // ignore
-    }
-    notify(`✅ Content for "${editingPage.title}" updated successfully!`);
-    setEditingPage(null);
+    updatePageOverride(editingPage.path, editFormDraft);
+    updatePageOverride(editingPage.id, editFormDraft);
+    notify(`✅ Content for "${editingPage.title}" saved and live!`);
+  };
+
+  const handleResetCurrentPage = () => {
+    if (!editingPage) return;
+    updatePageOverride(editingPage.path, {
+      title: undefined,
+      eyebrow: undefined,
+      headline: undefined,
+      lede: undefined,
+      primaryCtaText: undefined,
+      primaryCtaHref: undefined,
+      secondaryCtaText: undefined,
+      secondaryCtaHref: undefined,
+    });
+    updatePageOverride(editingPage.id, {
+      title: undefined,
+      eyebrow: undefined,
+      headline: undefined,
+      lede: undefined,
+      primaryCtaText: undefined,
+      primaryCtaHref: undefined,
+      secondaryCtaText: undefined,
+      secondaryCtaHref: undefined,
+    });
+    setEditFormDraft({
+      title: editingPage.title,
+      eyebrow: '',
+      headline: editingPage.title,
+      lede: editingPage.description,
+      primaryCtaText: 'Book a demo →',
+      primaryCtaHref: '/get-started#book-meeting',
+      secondaryCtaText: 'Explore platform',
+      secondaryCtaHref: '/products',
+    });
+    notify(`Content for "${editingPage.title}" reset to original factory text.`);
   };
 
   const handleSavePricing = () => {
@@ -1039,7 +1060,7 @@ export function SanityStudioPage() {
         </div>
       )}
 
-      {/* QUICK PAGE EDIT MODAL */}
+      {/* END-TO-END PAGE CONTENT EDIT MODAL */}
       {editingPage && (
         <div
           style={{
@@ -1052,50 +1073,123 @@ export function SanityStudioPage() {
             justifyContent: 'center',
             zIndex: 9999,
             padding: 20,
+            overflowY: 'auto',
           }}
         >
           <div
             style={{
               background: '#fff',
-              maxWidth: 600,
+              maxWidth: 680,
               width: '100%',
               borderRadius: 'var(--radius-lg)',
               boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
-              padding: '32px 28px',
+              padding: '32px 30px',
               border: '1px solid var(--color-border)',
+              maxHeight: '90vh',
+              overflowY: 'auto',
             }}
           >
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
-              <div>
-                <span style={{ fontSize: '0.75rem', fontWeight: 700, padding: '3px 8px', borderRadius: 4, background: 'var(--color-outline-fill)', color: 'var(--color-primary)' }}>
-                  {editingPage.category}
-                </span>
-                <h3 style={{ fontSize: '1.3rem', fontWeight: 800, color: 'var(--color-primary)', marginTop: 4 }}>
-                  Edit Content: {editingPage.title}
+            {/* Modal Header & Quick Page Switcher */}
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 16 }}>
+              <div style={{ flex: 1, marginRight: 16 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
+                  <span style={{ fontSize: '0.75rem', fontWeight: 700, padding: '3px 8px', borderRadius: 4, background: 'var(--color-outline-fill)', color: 'var(--color-primary)' }}>
+                    {editingPage.category}
+                  </span>
+                  <span style={{ fontSize: '0.82rem', color: 'var(--color-text-muted)' }}>
+                    Route: <code>{editingPage.path}</code>
+                  </span>
+                </div>
+                <h3 style={{ fontSize: '1.4rem', fontWeight: 800, color: 'var(--color-primary)', margin: 0 }}>
+                  Editing: {editingPage.title}
                 </h3>
-                <span style={{ fontSize: '0.82rem', color: 'var(--color-text-muted)' }}>
-                  Route: <code>{editingPage.path}</code>
-                </span>
               </div>
-              <button
-                onClick={() => setEditingPage(null)}
-                style={{ background: 'transparent', border: 'none', fontSize: '1.4rem', color: '#9CA3AF', cursor: 'pointer' }}
-              >
-                ×
-              </button>
+              <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                <a
+                  href={editingPage.path}
+                  target="_blank"
+                  rel="noreferrer"
+                  style={{
+                    padding: '6px 12px',
+                    borderRadius: 6,
+                    background: '#fff',
+                    border: '1px solid var(--color-border)',
+                    fontSize: '0.82rem',
+                    fontWeight: 600,
+                    color: 'var(--color-primary)',
+                    textDecoration: 'none',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: 4,
+                  }}
+                >
+                  👁️ View Live
+                </a>
+                <button
+                  onClick={() => setEditingPage(null)}
+                  style={{ background: 'transparent', border: 'none', fontSize: '1.5rem', color: '#9CA3AF', cursor: 'pointer' }}
+                >
+                  ×
+                </button>
+              </div>
             </div>
 
+            {/* Quick Switch Page Dropdown */}
+            <div style={{ background: 'var(--color-bg-light)', padding: '10px 14px', borderRadius: 8, marginBottom: 20, display: 'flex', alignItems: 'center', gap: 10 }}>
+              <span style={{ fontSize: '0.8rem', fontWeight: 700, color: 'var(--color-primary)', whiteSpace: 'nowrap' }}>
+                Switch Page:
+              </span>
+              <select
+                value={editingPage.id}
+                onChange={(e) => {
+                  const targetPage = STATIC_ALL_PAGES.find((p) => p.id === e.target.value);
+                  if (targetPage) openPageEditor(targetPage);
+                }}
+                style={{
+                  flex: 1,
+                  padding: '6px 10px',
+                  borderRadius: 6,
+                  border: '1px solid var(--color-border)',
+                  fontSize: '0.85rem',
+                  fontWeight: 600,
+                  outline: 'none',
+                  background: '#fff',
+                }}
+              >
+                {STATIC_ALL_PAGES.map((p) => (
+                  <option key={p.id} value={p.id}>
+                    [{p.category}] {p.title} ({p.path})
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {/* Content Form */}
             <form onSubmit={handleSavePageOverride}>
-              <div style={{ marginBottom: 14 }}>
-                <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 700, marginBottom: 6 }}>
-                  Page Title (Browser Tab & SEO)
-                </label>
-                <input
-                  type="text"
-                  value={editFormDraft.title}
-                  onChange={(e) => setEditFormDraft({ ...editFormDraft, title: e.target.value })}
-                  style={{ width: '100%', padding: '9px 12px', borderRadius: 6, border: '1px solid var(--color-border)', fontSize: '0.92rem', boxSizing: 'border-box' }}
-                />
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14, marginBottom: 14 }}>
+                <div>
+                  <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 700, marginBottom: 6 }}>
+                    Page / SEO Title
+                  </label>
+                  <input
+                    type="text"
+                    value={editFormDraft.title}
+                    onChange={(e) => setEditFormDraft({ ...editFormDraft, title: e.target.value })}
+                    style={{ width: '100%', padding: '9px 12px', borderRadius: 6, border: '1px solid var(--color-border)', fontSize: '0.92rem', boxSizing: 'border-box' }}
+                  />
+                </div>
+                <div>
+                  <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 700, marginBottom: 6 }}>
+                    Hero Eyebrow Tag
+                  </label>
+                  <input
+                    type="text"
+                    value={editFormDraft.eyebrow}
+                    onChange={(e) => setEditFormDraft({ ...editFormDraft, eyebrow: e.target.value })}
+                    placeholder="e.g. AGENTIC AI RECRUITMENT"
+                    style={{ width: '100%', padding: '9px 12px', borderRadius: 6, border: '1px solid var(--color-border)', fontSize: '0.92rem', boxSizing: 'border-box' }}
+                  />
+                </div>
               </div>
 
               <div style={{ marginBottom: 14 }}>
@@ -1106,48 +1200,113 @@ export function SanityStudioPage() {
                   type="text"
                   value={editFormDraft.headline}
                   onChange={(e) => setEditFormDraft({ ...editFormDraft, headline: e.target.value })}
-                  style={{ width: '100%', padding: '9px 12px', borderRadius: 6, border: '1px solid var(--color-border)', fontSize: '0.92rem', boxSizing: 'border-box' }}
+                  style={{ width: '100%', padding: '9px 12px', borderRadius: 6, border: '1px solid var(--color-border)', fontSize: '0.92rem', fontWeight: 700, boxSizing: 'border-box' }}
                 />
               </div>
 
-              <div style={{ marginBottom: 14 }}>
+              <div style={{ marginBottom: 16 }}>
                 <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 700, marginBottom: 6 }}>
-                  Lede Description / Summary
+                  Summary Lede / Body Description
                 </label>
                 <textarea
                   rows={3}
                   value={editFormDraft.lede}
                   onChange={(e) => setEditFormDraft({ ...editFormDraft, lede: e.target.value })}
-                  style={{ width: '100%', padding: '9px 12px', borderRadius: 6, border: '1px solid var(--color-border)', fontSize: '0.9rem', boxSizing: 'border-box' }}
+                  style={{ width: '100%', padding: '9px 12px', borderRadius: 6, border: '1px solid var(--color-border)', fontSize: '0.88rem', boxSizing: 'border-box' }}
                 />
               </div>
 
-              <div style={{ marginBottom: 20 }}>
-                <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 700, marginBottom: 6 }}>
-                  Primary CTA Text
-                </label>
-                <input
-                  type="text"
-                  value={editFormDraft.ctaText}
-                  onChange={(e) => setEditFormDraft({ ...editFormDraft, ctaText: e.target.value })}
-                  style={{ width: '100%', padding: '9px 12px', borderRadius: 6, border: '1px solid var(--color-border)', fontSize: '0.92rem', boxSizing: 'border-box' }}
-                />
+              {/* Action Buttons */}
+              <div style={{ background: '#F8FAFC', padding: 14, borderRadius: 8, border: '1px solid var(--color-border)', marginBottom: 20 }}>
+                <span style={{ fontSize: '0.8rem', fontWeight: 700, color: 'var(--color-primary)', display: 'block', marginBottom: 10 }}>
+                  Call-to-Action Buttons
+                </span>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 10 }}>
+                  <div>
+                    <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 600, marginBottom: 4 }}>Primary CTA Text</label>
+                    <input
+                      type="text"
+                      value={editFormDraft.primaryCtaText}
+                      onChange={(e) => setEditFormDraft({ ...editFormDraft, primaryCtaText: e.target.value })}
+                      style={{ width: '100%', padding: '8px 10px', borderRadius: 6, border: '1px solid var(--color-border)', fontSize: '0.85rem', boxSizing: 'border-box' }}
+                    />
+                  </div>
+                  <div>
+                    <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 600, marginBottom: 4 }}>Primary CTA Link</label>
+                    <input
+                      type="text"
+                      value={editFormDraft.primaryCtaHref}
+                      onChange={(e) => setEditFormDraft({ ...editFormDraft, primaryCtaHref: e.target.value })}
+                      style={{ width: '100%', padding: '8px 10px', borderRadius: 6, border: '1px solid var(--color-border)', fontSize: '0.85rem', boxSizing: 'border-box' }}
+                    />
+                  </div>
+                </div>
+
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+                  <div>
+                    <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 600, marginBottom: 4 }}>Secondary CTA Text</label>
+                    <input
+                      type="text"
+                      value={editFormDraft.secondaryCtaText}
+                      onChange={(e) => setEditFormDraft({ ...editFormDraft, secondaryCtaText: e.target.value })}
+                      style={{ width: '100%', padding: '8px 10px', borderRadius: 6, border: '1px solid var(--color-border)', fontSize: '0.85rem', boxSizing: 'border-box' }}
+                    />
+                  </div>
+                  <div>
+                    <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 600, marginBottom: 4 }}>Secondary CTA Link</label>
+                    <input
+                      type="text"
+                      value={editFormDraft.secondaryCtaHref}
+                      onChange={(e) => setEditFormDraft({ ...editFormDraft, secondaryCtaHref: e.target.value })}
+                      style={{ width: '100%', padding: '8px 10px', borderRadius: 6, border: '1px solid var(--color-border)', fontSize: '0.85rem', boxSizing: 'border-box' }}
+                    />
+                  </div>
+                </div>
               </div>
 
-              <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end' }}>
+              {/* Bottom Buttons */}
+              <div style={{ display: 'flex', gap: 10, justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap' }}>
                 <button
                   type="button"
-                  onClick={() => setEditingPage(null)}
-                  style={{ padding: '9px 16px', borderRadius: 6, background: '#fff', border: '1px solid var(--color-border)', fontWeight: 600, cursor: 'pointer' }}
+                  onClick={handleResetCurrentPage}
+                  style={{
+                    padding: '8px 14px',
+                    borderRadius: 6,
+                    background: '#FEF2F2',
+                    border: '1px solid #FECACA',
+                    color: '#DC2626',
+                    fontSize: '0.82rem',
+                    fontWeight: 600,
+                    cursor: 'pointer',
+                  }}
                 >
-                  Cancel
+                  🔄 Reset This Page
                 </button>
-                <button
-                  type="submit"
-                  style={{ padding: '9px 24px', borderRadius: 6, background: 'var(--color-primary)', color: '#fff', border: 'none', fontWeight: 700, cursor: 'pointer' }}
-                >
-                  Save Page Changes
-                </button>
+
+                <div style={{ display: 'flex', gap: 10 }}>
+                  <button
+                    type="button"
+                    onClick={() => setEditingPage(null)}
+                    style={{ padding: '9px 16px', borderRadius: 6, background: '#fff', border: '1px solid var(--color-border)', fontWeight: 600, cursor: 'pointer' }}
+                  >
+                    Done / Close
+                  </button>
+                  <button
+                    type="submit"
+                    style={{
+                      padding: '9px 24px',
+                      borderRadius: 6,
+                      background: 'var(--color-primary)',
+                      color: '#fff',
+                      border: 'none',
+                      fontWeight: 700,
+                      cursor: 'pointer',
+                      boxShadow: '0 4px 12px rgba(18, 63, 59, 0.2)',
+                    }}
+                  >
+                    💾 Save & Apply To Page Immediately
+                  </button>
+                </div>
               </div>
             </form>
           </div>
@@ -1285,8 +1444,6 @@ export function SanityStudioPage() {
             onClick={() => {
               if (confirm('Reset all website content back to factory defaults?')) {
                 resetDefaults();
-                localStorage.removeItem(PAGE_OVERRIDES_STORAGE_KEY);
-                setPageOverrides({});
                 setPricingDraft(pricing);
                 setHomeDraft(home);
                 notify('Content reset to factory defaults.');

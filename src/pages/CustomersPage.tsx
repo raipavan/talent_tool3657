@@ -5,8 +5,20 @@ import { SectionHead } from '../components/SectionHead';
 import { SkCtaBanner, SkHero, SkLogoMarquee, SkVectorArt } from '../components/SeekOutUI';
 import { Stories } from '../components/Stories';
 import { SubNav } from '../components/SubNav';
+import { usePageOverride } from '../sanity/SanityProvider';
 
 export function CustomersPage() {
+  const override = usePageOverride('/customers');
+  const title = (override?.headline || override?.title || 'Less chasing. More connecting.').replace(/\*/g, '');
+  const subtitle = override?.lede || "See how a connected hiring process changes a recruiting team's week, then model the hours and budget your own team could get back.";
+  const eyebrow = override?.eyebrow || 'CUSTOMER ROI & STORIES';
+  const primaryCta = override?.primaryCtaText
+    ? { label: override.primaryCtaText, href: override.primaryCtaHref || '#roi-calculator' }
+    : { label: 'Calculate your savings →', href: '#roi-calculator' };
+  const secondaryCta = override?.secondaryCtaText
+    ? { label: override.secondaryCtaText, href: override.secondaryCtaHref || '/case-studies' }
+    : { label: 'Read case studies', href: '/case-studies' };
+
   const [hires, setHires] = useState(100);
   const [hours, setHours] = useState(12);
   const [rate, setRate] = useState(40);
@@ -21,12 +33,12 @@ export function CustomersPage() {
   return (
     <main className="sk-page">
       <SkHero
-        eyebrow="CUSTOMER ROI & STORIES"
+        eyebrow={eyebrow}
         eyebrowIcon="trend"
-        title="Less chasing. More connecting."
-        subtitle="See how a connected hiring process changes a recruiting team's week, then model the hours and budget your own team could get back."
-        primaryCta={{ label: 'Calculate your savings →', href: '#roi-calculator' }}
-        secondaryCta={{ label: 'Read case studies', href: '/case-studies' }}
+        title={title}
+        subtitle={subtitle}
+        primaryCta={primaryCta}
+        secondaryCta={secondaryCta}
         aside={<SkVectorArt kind="customers" />}
       />
 

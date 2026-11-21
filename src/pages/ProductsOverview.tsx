@@ -3,20 +3,32 @@ import { Icon } from '../components/Icon';
 import { ProductMock } from '../components/ProductMock';
 import { SkCtaBanner, SkHero, SkLogoMarquee } from '../components/SeekOutUI';
 import { productPages, productPath } from '../data/products';
+import { usePageOverride } from '../sanity/SanityProvider';
 
 const stages = productPages.filter((product) => product.kind === 'stage');
 const layers = productPages.filter((product) => product.kind === 'layer');
 
 export function ProductsOverview() {
+  const override = usePageOverride('/products');
+  const title = (override?.headline || override?.title || 'One platform, from requisition to signed offer').replace(/\*/g, '');
+  const subtitle = override?.lede || 'Most teams stitch together five disconnected tools to move a candidate from applied to hired. TalentPool365 runs the whole hiring line so the evidence behind every decision travels with the candidate.';
+  const eyebrow = override?.eyebrow || 'TALENTPOOL365 PLATFORM';
+  const primaryCta = override?.primaryCtaText
+    ? { label: override.primaryCtaText, href: override.primaryCtaHref || '/get-started#book-meeting' }
+    : { label: 'Book a demo →', href: '/get-started#book-meeting' };
+  const secondaryCta = override?.secondaryCtaText
+    ? { label: override.secondaryCtaText, href: override.secondaryCtaHref || '/pricing' }
+    : { label: 'See pricing', href: '/pricing' };
+
   return (
     <main className="sk-page">
       <SkHero
-        eyebrow="TALENTPOOL365 PLATFORM"
+        eyebrow={eyebrow}
         eyebrowIcon="layers"
-        title="One platform, from requisition to signed offer"
-        subtitle="Most teams stitch together five disconnected tools to move a candidate from applied to hired. TalentPool365 runs the whole hiring line so the evidence behind every decision travels with the candidate."
-        primaryCta={{ label: 'Book a demo →', href: '/get-started#book-meeting' }}
-        secondaryCta={{ label: 'See pricing', href: '/pricing' }}
+        title={title}
+        subtitle={subtitle}
+        primaryCta={primaryCta}
+        secondaryCta={secondaryCta}
         stats={[
           { value: '1B+', label: 'Profiles & ATS archives' },
           { value: '9 products', label: 'One candidate record' },

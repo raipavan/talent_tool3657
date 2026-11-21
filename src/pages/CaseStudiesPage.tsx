@@ -4,6 +4,7 @@ import { Icon } from '../components/Icon';
 import { Reveal } from '../components/Reveal';
 import { SectionHead } from '../components/SectionHead';
 import { SkCtaBanner, SkHero, SkLogoMarquee, SkVectorArt } from '../components/SeekOutUI';
+import { usePageOverride } from '../sanity/SanityProvider';
 
 interface CaseStudyStory {
   id: string;
@@ -234,15 +235,26 @@ export function CaseStudiesPage() {
     return matchInd && matchUse && matchSize;
   });
 
+  const override = usePageOverride('/case-studies');
+  const title = (override?.headline || override?.title || 'TalentPool365 Customers Delivering Proven Results').replace(/\*/g, '');
+  const subtitle = override?.lede || 'Real hiring challenges, real results. Explore how recruiting teams across industries use TalentPool365 to cut time-to-hire, improve candidate quality, and scale without adding headcount.';
+  const eyebrow = override?.eyebrow || 'CUSTOMER STORIES';
+  const primaryCta = override?.primaryCtaText
+    ? { label: override.primaryCtaText, href: override.primaryCtaHref || '/get-started#book-meeting' }
+    : { label: 'Book a demo →', href: '/get-started#book-meeting' };
+  const secondaryCta = override?.secondaryCtaText
+    ? { label: override.secondaryCtaText, href: override.secondaryCtaHref || '#stories-grid' }
+    : { label: 'Browse case studies', href: '#stories-grid' };
+
   return (
     <main className="sk-page">
       <SkHero
-        eyebrow="CUSTOMER STORIES"
+        eyebrow={eyebrow}
         eyebrowIcon="trend"
-        title="TalentPool365 Customers Delivering Proven Results"
-        subtitle="Real hiring challenges, real results. Explore how recruiting teams across industries use TalentPool365 to cut time-to-hire, improve candidate quality, and scale without adding headcount."
-        primaryCta={{ label: 'Book a demo →', href: '/get-started#book-meeting' }}
-        secondaryCta={{ label: 'Browse case studies', href: '#stories-grid' }}
+        title={title}
+        subtitle={subtitle}
+        primaryCta={primaryCta}
+        secondaryCta={secondaryCta}
         stats={[
           { value: '68%', label: 'Faster time-to-hire' },
           { value: '14 days', label: 'Saved per hire' },

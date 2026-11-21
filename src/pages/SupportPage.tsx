@@ -3,6 +3,7 @@ import { Faq } from '../components/Faq';
 import { LeadForm } from '../components/LeadForm';
 import { SkCtaBanner, SkHero, SkVectorArt } from '../components/SeekOutUI';
 import { SubNav } from '../components/SubNav';
+import { usePageOverride } from '../sanity/SanityProvider';
 
 const supportQuestions = [
   { question: 'I cannot access my workspace. What should I check?', answer: 'Confirm that you are using your organization’s workspace address and the email your administrator invited. If your organization uses single sign-on, try that sign-in option. Contact your workspace administrator or support if access is still blocked; never send your password.' },
@@ -12,15 +13,26 @@ const supportQuestions = [
 ];
 
 export function SupportPage() {
+  const override = usePageOverride('/support');
+  const title = (override?.headline || override?.title || 'A person on your side').replace(/\*/g, '');
+  const subtitle = override?.lede || 'Find practical workflow guidance, prepare a support request, or plan onboarding training for your recruiting team.';
+  const eyebrow = override?.eyebrow || 'HELP & SUPPORT';
+  const primaryCta = override?.primaryCtaText
+    ? { label: override.primaryCtaText, href: override.primaryCtaHref || '#raise-ticket' }
+    : { label: 'Prepare a support request →', href: '#raise-ticket' };
+  const secondaryCta = override?.secondaryCtaText
+    ? { label: override.secondaryCtaText, href: override.secondaryCtaHref || '/how-it-works' }
+    : { label: 'Read workflow guide', href: '/how-it-works' };
+
   return (
     <main className="sk-page">
       <SkHero
-        eyebrow="HELP & SUPPORT"
+        eyebrow={eyebrow}
         eyebrowIcon="headset"
-        title="A person on your side"
-        subtitle="Find practical workflow guidance, prepare a support request, or plan onboarding training for your recruiting team."
-        primaryCta={{ label: 'Prepare a support request →', href: '#raise-ticket' }}
-        secondaryCta={{ label: 'Read workflow guide', href: '/how-it-works' }}
+        title={title}
+        subtitle={subtitle}
+        primaryCta={primaryCta}
+        secondaryCta={secondaryCta}
         aside={<SkVectorArt kind="support" />}
       />
 

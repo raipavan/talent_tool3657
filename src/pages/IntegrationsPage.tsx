@@ -3,6 +3,7 @@ import { Icon } from '../components/Icon';
 import { Reveal } from '../components/Reveal';
 import { SectionHead } from '../components/SectionHead';
 import { SkCtaBanner, SkHero, SkLogoMarquee } from '../components/SeekOutUI';
+import { usePageOverride } from '../sanity/SanityProvider';
 
 interface IntegrationItem {
   name: string;
@@ -255,15 +256,26 @@ export function IntegrationsPage() {
     return matchCat && matchSearch;
   });
 
+  const override = usePageOverride('/integrations');
+  const title = (override?.headline || override?.title || 'Recruiting Agentic AI that works inside your stack').replace(/\*/g, '');
+  const subtitle = override?.lede || 'You should not have to replace your ATS or HRMS to hire smarter. TalentPool365 syncs candidate profiles, scores, and statuses directly inside the tools your team already uses.';
+  const eyebrow = override?.eyebrow || 'ECOSYSTEM & API';
+  const primaryCta = override?.primaryCtaText
+    ? { label: override.primaryCtaText, href: override.primaryCtaHref || '/get-started#book-meeting' }
+    : { label: 'Book a demo →', href: '/get-started#book-meeting' };
+  const secondaryCta = override?.secondaryCtaText
+    ? { label: override.secondaryCtaText, href: override.secondaryCtaHref || '#directory' }
+    : { label: 'See all integrations ↓', href: '#directory' };
+
   return (
     <main className="sk-page">
       <SkHero
-        eyebrow="ECOSYSTEM & API"
+        eyebrow={eyebrow}
         eyebrowIcon="layers"
-        title="Recruiting Agentic AI that works inside your stack"
-        subtitle="You should not have to replace your ATS or HRMS to hire smarter. TalentPool365 syncs candidate profiles, scores, and statuses directly inside the tools your team already uses."
-        primaryCta={{ label: 'Book a demo →', href: '/get-started#book-meeting' }}
-        secondaryCta={{ label: 'See all integrations ↓', href: '#directory' }}
+        title={title}
+        subtitle={subtitle}
+        primaryCta={primaryCta}
+        secondaryCta={secondaryCta}
         aside={
           <div className="sk-mosaic" aria-label="Ecosystem partner mosaic">
             <div className="sk-mosaic-tile">Workday</div>

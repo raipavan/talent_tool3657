@@ -6,6 +6,7 @@ import { SkCtaBanner, SkHero, SkLogoMarquee } from '../components/SeekOutUI';
 import { productPages, productPath, type ProductPage as ProductData } from '../data/products';
 import { useSanityData } from '../sanity/useSanity';
 import { productBySlugQuery } from '../sanity/queries';
+import { usePageOverride } from '../sanity/SanityProvider';
 import {
   SourcingExperience,
   ScreeningExperience,
@@ -19,11 +20,18 @@ import {
 } from '../components/ProductUniqueExperiences';
 
 export function ProductPage({ product: initialProduct }: { product: ProductData }) {
-  const { data: product } = useSanityData<ProductData>(
+  const { data: rawProduct } = useSanityData<ProductData>(
     productBySlugQuery,
     initialProduct,
     { slug: initialProduct.slug }
   );
+  const override = usePageOverride(`/products/${initialProduct.slug}`) || usePageOverride(initialProduct.slug);
+  const product: ProductData = {
+    ...rawProduct,
+    title: override?.title || rawProduct.title,
+    headline: override?.headline || rawProduct.headline,
+    lede: override?.lede || rawProduct.lede,
+  };
   const position = productPages.indexOf(initialProduct);
   const previous = productPages[position - 1];
   const next = productPages[position + 1];

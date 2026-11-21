@@ -14,22 +14,33 @@ import {
   useCaseSolutions,
 } from '../data/solutions';
 import { useActiveSection } from '../lib/useActiveSection';
+import { usePageOverride } from '../sanity/SanityProvider';
 
 const sectionIds = solutionSections.map((section) => section.id);
 const sectionLinks = solutionSections.map((section) => ({ label: section.label, href: `#${section.id}` }));
 
 export function SolutionsPage() {
   const active = useActiveSection(sectionIds);
+  const override = usePageOverride('/solutions');
+  const title = (override?.headline || override?.title || 'Built for the way your sector hires').replace(/\*/g, '');
+  const subtitle = override?.lede || 'A hospital, a bank, and a fast-growing startup do not hire the same way. Find your industry, company size, or hiring scenario and see how TalentPool365 fits.';
+  const eyebrow = override?.eyebrow || 'INDUSTRY & SIZE SOLUTIONS';
+  const primaryCta = override?.primaryCtaText
+    ? { label: override.primaryCtaText, href: override.primaryCtaHref || '/company/contact' }
+    : { label: 'Talk to a specialist →', href: '/company/contact' };
+  const secondaryCta = override?.secondaryCtaText
+    ? { label: override.secondaryCtaText, href: override.secondaryCtaHref || '/products' }
+    : { label: 'See the platform', href: '/products' };
 
   return (
     <main className="sk-page">
       <SkHero
-        eyebrow="INDUSTRY & SIZE SOLUTIONS"
+        eyebrow={eyebrow}
         eyebrowIcon="building"
-        title="Built for the way your sector hires"
-        subtitle="A hospital, a bank, and a fast-growing startup do not hire the same way. Find your industry, company size, or hiring scenario and see how TalentPool365 fits."
-        primaryCta={{ label: 'Talk to a specialist →', href: '/company/contact' }}
-        secondaryCta={{ label: 'See the platform', href: '/products' }}
+        title={title}
+        subtitle={subtitle}
+        primaryCta={primaryCta}
+        secondaryCta={secondaryCta}
         aside={<SkVectorArt kind="solutions" />}
       />
 

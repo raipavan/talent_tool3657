@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Icon } from '../components/Icon';
 import { SkCtaBanner, SkHero } from '../components/SeekOutUI';
+import { usePageOverride } from '../sanity/SanityProvider';
 
 const privacySections = [
   {
@@ -213,16 +214,26 @@ const termsSections = [
 
 export function LegalPage() {
   const [activeTab, setActiveTab] = useState<'privacy' | 'terms' | 'gdpr'>('privacy');
+  const override = usePageOverride('/legal');
+  const title = (override?.headline || override?.title || 'Security and Trust at TalentPool365').replace(/\*/g, '');
+  const subtitle = override?.lede || "Explore TalentPool365's complete Privacy Policy, Terms of Service, and GDPR compliance framework. We protect candidate and corporate data with enterprise rigor.";
+  const eyebrow = override?.eyebrow || 'SECURITY & COMPLIANCE';
+  const primaryCta = override?.primaryCtaText
+    ? { label: override.primaryCtaText, href: override.primaryCtaHref || '/company/contact' }
+    : { label: 'Contact Trust Team →', href: '/company/contact' };
+  const secondaryCta = override?.secondaryCtaText
+    ? { label: override.secondaryCtaText, href: override.secondaryCtaHref || '#legal-docs' }
+    : { label: 'Read Privacy Policy', href: '#legal-docs' };
 
   return (
     <main className="sk-page">
       <SkHero
-        eyebrow="SECURITY & COMPLIANCE"
+        eyebrow={eyebrow}
         eyebrowIcon="shield"
-        title="Security and Trust at TalentPool365"
-        subtitle="Explore TalentPool365's complete Privacy Policy, Terms of Service, and GDPR compliance framework. We protect candidate and corporate data with enterprise rigor."
-        primaryCta={{ label: 'Contact Trust Team →', href: '/company/contact' }}
-        secondaryCta={{ label: 'Read Privacy Policy', href: '#legal-docs' }}
+        title={title}
+        subtitle={subtitle}
+        primaryCta={primaryCta}
+        secondaryCta={secondaryCta}
         image="/assets/pages/hero-security.jpg"
         imageAlt="TalentPool365 security and compliance illustration"
       />
