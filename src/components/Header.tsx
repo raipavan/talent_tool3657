@@ -14,11 +14,24 @@ const isCurrent = (item: NavItem, path: string): boolean => {
   return prefix === '/' ? path === '/' : path === prefix || path.startsWith(`${prefix}/`);
 };
 
+const resolveHref = (raw: string | undefined, fallback: string): string => {
+  const trimmed = (raw || '').trim();
+  if (!trimmed) return fallback;
+  if (/^(https?:\/\/|mailto:|tel:|\/|#)/i.test(trimmed)) return trimmed;
+  return `https://${trimmed}`;
+};
+
 export function Header() {
   const scrolled = useScrolled();
   const path = usePath();
   const navigation = useNavigationContent();
   const navItems = (navigation?.navItems ?? staticNavItems) as NavItem[];
+  const signInLabel = navigation?.header?.signIn?.label || 'Sign In';
+  const signInHref = resolveHref(navigation?.header?.signIn?.href, '/get-started');
+  const isSignInExternal = /^https?:\/\//i.test(signInHref);
+  const ctaLabel = navigation?.header?.cta?.label || 'Book a demo';
+  const ctaHref = resolveHref(navigation?.header?.cta?.href, '/get-started');
+  const isCtaExternal = /^https?:\/\//i.test(ctaHref);
   const [open, setOpen] = useState(false);
   const [openMenu, setOpenMenu] = useState<string | null>(null);
   const [isAdmin, setIsAdmin] = useState(false);
@@ -222,8 +235,12 @@ export function Header() {
         </nav>
 
         <div className="header-actions">
-          <a className="link-quiet" href="/support">
-            Support
+          <a
+            className="link-quiet"
+            href={signInHref}
+            {...(isSignInExternal ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
+          >
+            {signInLabel}
           </a>
           {isAdmin && (
             <a
@@ -242,8 +259,12 @@ export function Header() {
               Studio
             </a>
           )}
-          <a className="btn btn-primary btn--sm" href="/get-started">
-            Book a demo
+          <a
+            className="btn btn-primary btn--sm"
+            href={ctaHref}
+            {...(isCtaExternal ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
+          >
+            {ctaLabel}
           </a>
           <button
             ref={toggleRef}

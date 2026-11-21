@@ -2509,15 +2509,60 @@ export function SanityStudioPage() {
           </p>
 
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 20 }}>
-            <div style={{ background: 'var(--color-bg-light)', padding: 18, borderRadius: 8 }}>
+            <div style={{ background: 'var(--color-bg-light)', padding: 18, borderRadius: 8, border: '1px solid var(--color-border)' }}>
+              <h3 style={{ fontSize: '1.05rem', fontWeight: 700, marginBottom: 4 }}>Header Sign In Button</h3>
+              <p style={{ fontSize: '0.8rem', color: 'var(--color-text-muted)', marginBottom: 12 }}>
+                Replaces the Support link in the top navigation bar. Enter any external URL (e.g. https://app.talentpool365.com/login) or internal path.
+              </p>
+              <div style={{ marginBottom: 10 }}>
+                <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, marginBottom: 4 }}>Button Label</label>
+                <input
+                  type="text"
+                  value={navigation?.header?.signIn?.label ?? 'Sign In'}
+                  onChange={(e) => {
+                    const next = {
+                      ...navigation,
+                      header: {
+                        ...navigation?.header,
+                        signIn: { ...navigation?.header?.signIn, label: e.target.value },
+                      },
+                    };
+                    updateNavigation(next);
+                  }}
+                  placeholder="Sign In"
+                  style={{ width: '100%', padding: '8px 12px', borderRadius: 6, border: '1px solid var(--color-border)', boxSizing: 'border-box' }}
+                />
+              </div>
+              <div>
+                <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, marginBottom: 4 }}>Sign In Button URL</label>
+                <input
+                  type="url"
+                  value={navigation?.header?.signIn?.href ?? '/get-started'}
+                  onChange={(e) => {
+                    const next = {
+                      ...navigation,
+                      header: {
+                        ...navigation?.header,
+                        signIn: { ...navigation?.header?.signIn, href: e.target.value },
+                      },
+                    };
+                    updateNavigation(next);
+                  }}
+                  placeholder="https://app.talentpool365.com/login"
+                  style={{ width: '100%', padding: '8px 12px', borderRadius: 6, border: '1px solid var(--color-border)', boxSizing: 'border-box' }}
+                />
+              </div>
+            </div>
+
+            <div style={{ background: 'var(--color-bg-light)', padding: 18, borderRadius: 8, border: '1px solid var(--color-border)' }}>
               <h3 style={{ fontSize: '1.05rem', fontWeight: 700, marginBottom: 12 }}>Header Primary CTA</h3>
               <div style={{ marginBottom: 10 }}>
                 <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, marginBottom: 4 }}>Button Text</label>
                 <input
                   type="text"
-                  defaultValue={navigation?.header?.cta?.label || 'Get Started'}
+                  value={navigation?.header?.cta?.label ?? 'Book a demo'}
                   onChange={(e) => {
-                    const next = { ...navigation, header: { ...navigation.header, cta: { ...navigation?.header?.cta, label: e.target.value } } };
+                    const next = { ...navigation, header: { ...navigation?.header, cta: { ...navigation?.header?.cta, label: e.target.value } } };
                     updateNavigation(next);
                   }}
                   style={{ width: '100%', padding: '8px 12px', borderRadius: 6, border: '1px solid var(--color-border)', boxSizing: 'border-box' }}
@@ -2527,9 +2572,9 @@ export function SanityStudioPage() {
                 <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, marginBottom: 4 }}>Button Link</label>
                 <input
                   type="text"
-                  defaultValue={navigation?.header?.cta?.href || '/get-started'}
+                  value={navigation?.header?.cta?.href ?? '/get-started'}
                   onChange={(e) => {
-                    const next = { ...navigation, header: { ...navigation.header, cta: { ...navigation?.header?.cta, href: e.target.value } } };
+                    const next = { ...navigation, header: { ...navigation?.header, cta: { ...navigation?.header?.cta, href: e.target.value } } };
                     updateNavigation(next);
                   }}
                   style={{ width: '100%', padding: '8px 12px', borderRadius: 6, border: '1px solid var(--color-border)', boxSizing: 'border-box' }}
@@ -2537,15 +2582,15 @@ export function SanityStudioPage() {
               </div>
             </div>
 
-            <div style={{ background: 'var(--color-bg-light)', padding: 18, borderRadius: 8 }}>
+            <div style={{ background: 'var(--color-bg-light)', padding: 18, borderRadius: 8, border: '1px solid var(--color-border)' }}>
               <h3 style={{ fontSize: '1.05rem', fontWeight: 700, marginBottom: 12 }}>Footer Note & Slogan</h3>
               <div>
                 <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, marginBottom: 4 }}>Slogan / Mission</label>
                 <textarea
                   rows={3}
-                  defaultValue={navigation?.footer?.slogan || 'Empowering recruitment teams with Agentic AI to source, screen, and hire candidates with unprecedented speed and precision.'}
+                  value={navigation?.footer?.slogan ?? 'Empowering recruitment teams with Agentic AI to source, screen, and hire candidates with unprecedented speed and precision.'}
                   onChange={(e) => {
-                    const next = { ...navigation, footer: { ...navigation.footer, slogan: e.target.value } };
+                    const next = { ...navigation, footer: { ...navigation?.footer, slogan: e.target.value } };
                     updateNavigation(next);
                   }}
                   style={{ width: '100%', padding: '8px 12px', borderRadius: 6, border: '1px solid var(--color-border)', fontSize: '0.88rem', boxSizing: 'border-box' }}
