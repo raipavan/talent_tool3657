@@ -21,6 +21,7 @@ export function Header() {
   const navItems = (navigation?.navItems ?? staticNavItems) as NavItem[];
   const [open, setOpen] = useState(false);
   const [openMenu, setOpenMenu] = useState<string | null>(null);
+  const [isAdmin, setIsAdmin] = useState(false);
   const toggleRef = useRef<HTMLButtonElement>(null);
   const headerRef = useRef<HTMLElement>(null);
   const caretRefs = useRef<Record<string, HTMLButtonElement | null>>({});
@@ -59,6 +60,14 @@ export function Header() {
   useEffect(() => {
     setOpen(false);
     setOpenMenu(null);
+    try {
+      setIsAdmin(
+        localStorage.getItem('tp365_studio_authenticated') === 'true' ||
+        sessionStorage.getItem('tp365_studio_authenticated') === 'true'
+      );
+    } catch {
+      setIsAdmin(false);
+    }
   }, [path]);
 
   const closeNavigation = () => {
@@ -216,9 +225,23 @@ export function Header() {
           <a className="link-quiet" href="/support">
             Support
           </a>
-          <a className="link-quiet" href="/studio" title="Open Studio CMS">
-            Studio
-          </a>
+          {isAdmin && (
+            <a
+              className="link-quiet"
+              href="/studio"
+              title="Admin Content Studio"
+              style={{
+                color: '#059669',
+                fontWeight: 700,
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 5,
+              }}
+            >
+              <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#10B981' }}></span>
+              Studio
+            </a>
+          )}
           <a className="btn btn-primary btn--sm" href="/get-started">
             Book a demo
           </a>
