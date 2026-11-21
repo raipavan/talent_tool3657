@@ -38,6 +38,13 @@ export interface PricingContentModel {
   faqs: PricingFAQ[];
 }
 
+export interface SanityConfigState {
+  projectId: string;
+  dataset: string;
+  apiVersion: string;
+  token?: string;
+}
+
 const defaultPricingData: PricingContentModel = {
   heroTitle: 'Try TalentPool365 free for 14 days',
   heroSubtitle: 'Run Agentic AI sourcing, semantic resume screening, and automated interviews on a live role. No credit card required.',
@@ -148,6 +155,11 @@ const defaultPricingData: PricingContentModel = {
   ],
 };
 
+const STORAGE_KEY_PRICING = 'tp365_cms_pricing';
+const STORAGE_KEY_HOME = 'tp365_cms_home';
+const STORAGE_KEY_NAV = 'tp365_cms_nav';
+const STORAGE_KEY_CONFIG = 'tp365_cms_config';
+
 interface SanityContextType {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   home: any;
@@ -155,6 +167,15 @@ interface SanityContextType {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   navigation: any;
   isSanityLive: boolean;
+  sanityConfig: SanityConfigState;
+  updatePricing: (newPricing: PricingContentModel) => void;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  updateHome: (newHome: any) => void;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  updateNavigation: (newNav: any) => void;
+  updateSanityConfig: (config: SanityConfigState) => void;
+  resetDefaults: () => void;
+  pushToSanity: () => Promise<{ success: boolean; message: string }>;
 }
 
 const SanityContext = createContext<SanityContextType>({
@@ -162,18 +183,71 @@ const SanityContext = createContext<SanityContextType>({
   pricing: defaultPricingData,
   navigation: navigationDefault,
   isSanityLive: false,
+  sanityConfig: {
+    projectId: import.meta.env.VITE_SANITY_PROJECT_ID || '',
+    dataset: import.meta.env.VITE_SANITY_DATASET || 'production',
+    apiVersion: import.meta.env.VITE_SANITY_API_VERSION || '2024-03-01',
+    token: '',
+  },
+  updatePricing: () => {},
+  updateHome: () => {},
+  updateNavigation: () => {},
+  updateSanityConfig: () => {},
+  resetDefaults: () => {},
+  pushToSanity: async () => ({ success: false, message: 'Not initialized' }),
 });
 
 export function SanityProvider({ children }: { children: ReactNode }) {
-  const [home, setHome] = useState(homeDefault);
-  const [pricing, setPricing] = useState<PricingContentModel>(defaultPricingData);
-  const [navigation, setNavigation] = useState(navigationDefault);
+  // 1. Initialize from localStorage if present, else defaults
+  const [home, setHome] = useState(() => {
+    try {
+      const saved = localStorage.getItem(STORAGE_KEY_HOME);
+      return saved ? JSON.parse(saved) : homeDefault;
+    } catch {
+      return homeDefault;
+    }
+  });
+
+  const [pricing, setPricing] = useState<PricingContentModel>(() => {
+    try {
+      const saved = localStorage.getItem(STORAGE_KEY_PRICING);
+      return saved ? JSON.parse(saved) : defaultPricingData;
+    } catch {
+      return defaultPricingData;
+    }
+  });
+
+  const [navigation, setNavigation] = useState(() => {
+    try {
+      const saved = localStorage.getItem(STORAGE_KEY_NAV);
+      return saved ? JSON.parse(saved) : navigationDefault;
+    } catch {
+      return navigationDefault;
+    }
+  });
+
+  const [sanityConfig, setSanityConfig] = useState<SanityConfigState>(() => {
+    try {
+      const saved = localStorage.getItem(STORAGE_KEY_CONFIG);
+      if (saved) return JSON.parse(saved);
+    } catch {
+      // ignore
+    }
+    return {
+      projectId: import.meta.env.VITE_SANITY_PROJECT_ID || '',
+      dataset: import.meta.env.VITE_SANITY_DATASET || 'production',
+      apiVersion: import.meta.env.VITE_SANITY_API_VERSION || '2024-03-01',
+      token: '',
+    };
+  });
+
   const [isSanityLive, setIsSanityLive] = useState(false);
 
+  // 2. Fetch live data from Sanity Cloud if configured
   useEffect(() => {
-    if (!isSanityConfigured || !sanityClient) return;
+    const activeProjectId = sanityConfig.projectId || (isSanityConfigured ? (import.meta.env.VITE_SANITY_PROJECT_ID as string) : '');
+    if (!activeProjectId || !sanityClient) return;
 
-    // Fetch live content from Sanity
     Promise.allSettled([
       sanityClient.fetch(homePageQuery),
       sanityClient.fetch(pricingPageQuery),
@@ -181,7 +255,7 @@ export function SanityProvider({ children }: { children: ReactNode }) {
     ]).then(([homeRes, pricingRes, navRes]) => {
       let live = false;
       if (homeRes.status === 'fulfilled' && homeRes.value) {
-        setHome((prev) => ({ ...prev, ...homeRes.value }));
+        setHome((prev: unknown) => ({ ...(typeof prev === 'object' && prev ? prev : {}), ...homeRes.value }));
         live = true;
       }
       if (pricingRes.status === 'fulfilled' && pricingRes.value) {
@@ -189,15 +263,160 @@ export function SanityProvider({ children }: { children: ReactNode }) {
         live = true;
       }
       if (navRes.status === 'fulfilled' && navRes.value) {
-        setNavigation((prev) => ({ ...prev, ...navRes.value }));
+        setNavigation((prev: unknown) => ({ ...(typeof prev === 'object' && prev ? prev : {}), ...navRes.value }));
         live = true;
       }
       if (live) setIsSanityLive(true);
     });
-  }, []);
+  }, [sanityConfig.projectId]);
+
+  // Content mutators
+  const updatePricing = (newPricing: PricingContentModel) => {
+    setPricing(newPricing);
+    try {
+      localStorage.setItem(STORAGE_KEY_PRICING, JSON.stringify(newPricing));
+    } catch {
+      // ignore storage errors
+    }
+  };
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const updateHome = (newHome: any) => {
+    setHome(newHome);
+    try {
+      localStorage.setItem(STORAGE_KEY_HOME, JSON.stringify(newHome));
+    } catch {
+      // ignore
+    }
+  };
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const updateNavigation = (newNav: any) => {
+    setNavigation(newNav);
+    try {
+      localStorage.setItem(STORAGE_KEY_NAV, JSON.stringify(newNav));
+    } catch {
+      // ignore
+    }
+  };
+
+  const updateSanityConfig = (newConfig: SanityConfigState) => {
+    setSanityConfig(newConfig);
+    try {
+      localStorage.setItem(STORAGE_KEY_CONFIG, JSON.stringify(newConfig));
+    } catch {
+      // ignore
+    }
+  };
+
+  const resetDefaults = () => {
+    setPricing(defaultPricingData);
+    setHome(homeDefault);
+    setNavigation(navigationDefault);
+    try {
+      localStorage.removeItem(STORAGE_KEY_PRICING);
+      localStorage.removeItem(STORAGE_KEY_HOME);
+      localStorage.removeItem(STORAGE_KEY_NAV);
+    } catch {
+      // ignore
+    }
+  };
+
+  // Direct sync to Sanity Mutate API
+  const pushToSanity = async (): Promise<{ success: boolean; message: string }> => {
+    const pId = sanityConfig.projectId.trim();
+    const token = sanityConfig.token?.trim();
+    const dataset = sanityConfig.dataset.trim() || 'production';
+    const apiVer = sanityConfig.apiVersion.trim() || '2024-03-01';
+
+    if (!pId) {
+      return { success: false, message: 'Please enter your Sanity Project ID first.' };
+    }
+    if (!token) {
+      return {
+        success: false,
+        message: 'A Sanity Write API token is required to push mutations directly to Sanity Cloud. You can generate one at sanity.io/manage under API > Tokens.'
+      };
+    }
+
+    try {
+      const endpoint = `https://${pId}.api.sanity.io/v${apiVer}/data/mutate/${dataset}`;
+
+      // Build mutations for pricingPage and homePage documents
+      const mutations = [
+        {
+          createOrReplace: {
+            _id: 'pricingPage',
+            _type: 'pricingPage',
+            title: pricing.heroTitle || 'Pricing',
+            subtitle: pricing.heroSubtitle || '',
+            plans: pricing.plans.map((p, idx) => ({
+              _key: `plan_${idx}`,
+              name: p.name,
+              badge: p.badge,
+              target: p.target,
+              priceMonthly: p.priceMonthly,
+              priceAnnual: p.priceAnnual,
+              trialNote: p.trialNote,
+              isPopular: Boolean(p.isPopular),
+              featureTitle: p.featureTitle,
+              features: p.features,
+              ctaText: p.ctaText,
+              ctaHref: p.ctaHref,
+            })),
+            comparisonFeatures: pricing.comparisonFeatures.map((c, idx) => ({
+              _key: `comp_${idx}`,
+              feature: c.feature,
+              starter: c.starter,
+              pro: c.pro,
+              ent: c.ent,
+            })),
+            faqs: pricing.faqs.map((f, idx) => ({
+              _key: `faq_${idx}`,
+              question: f.q,
+              answer: f.a,
+            })),
+          },
+        },
+      ];
+
+      const res = await fetch(endpoint, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ mutations }),
+      });
+
+      if (!res.ok) {
+        const errText = await res.text();
+        return { success: false, message: `Sanity Cloud API returned error ${res.status}: ${errText}` };
+      }
+
+      setIsSanityLive(true);
+      return { success: true, message: 'Successfully synced documents to Sanity Cloud dataset!' };
+    } catch (err) {
+      return { success: false, message: `Failed to push to Sanity Cloud: ${err instanceof Error ? err.message : String(err)}` };
+    }
+  };
 
   return (
-    <SanityContext.Provider value={{ home, pricing, navigation, isSanityLive }}>
+    <SanityContext.Provider
+      value={{
+        home,
+        pricing,
+        navigation,
+        isSanityLive,
+        sanityConfig,
+        updatePricing,
+        updateHome,
+        updateNavigation,
+        updateSanityConfig,
+        resetDefaults,
+        pushToSanity,
+      }}
+    >
       {children}
     </SanityContext.Provider>
   );

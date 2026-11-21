@@ -23,6 +23,7 @@ import { ResourcesPage, BlogPage } from './pages/ResourcesPage';
 import { SupportPage } from './pages/SupportPage';
 import { LegalPage } from './pages/LegalPage';
 import { GetStartedPage } from './pages/GetStartedPage';
+import { SanityStudioPage } from './pages/SanityStudioPage';
 
 export interface Route {
   /** Browser tab title, without the site name. */
@@ -145,6 +146,16 @@ export const routes: Record<string, Route> = {
     title: 'Contact Us',
     description: 'Contact TalentPool365 sales, support, press and partnerships. Replies within one business day.',
     render: () => <ContactPage />,
+  },
+  '/admin': {
+    title: 'Content Studio & CMS',
+    description: 'Manage website content, pricing plans, and Sanity CMS synchronization.',
+    render: () => <SanityStudioPage />,
+  },
+  '/studio': {
+    title: 'Content Studio & CMS',
+    description: 'Manage website content, pricing plans, and Sanity CMS synchronization.',
+    render: () => <SanityStudioPage />,
   },
 };
 

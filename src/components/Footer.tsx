@@ -107,6 +107,9 @@ export function Footer() {
                 <a href={link.href}>{link.label}</a>
               </li>
             ))}
+            <li>
+              <a href="/admin" title="Open Content Management Studio">CMS Studio</a>
+            </li>
           </ul>
         </div>
       </div>
