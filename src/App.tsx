@@ -1,4 +1,5 @@
 import { useEffect, useRef } from 'react';
+import { CookieBanner } from './components/CookieBanner';
 import { Footer } from './components/Footer';
 import { Header } from './components/Header';
 import { interceptLinkClicks, scrollToHash, usePath } from './lib/router';
@@ -55,6 +56,7 @@ export default function App() {
         {route.render()}
       </main>
       <Footer />
+      <CookieBanner />
     </>
   );
 }

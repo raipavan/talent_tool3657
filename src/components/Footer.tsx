@@ -1,4 +1,5 @@
 import { footerColumns as staticFooterColumns, footerLegalLinks as staticFooterLegalLinks, type FooterColumn, type NavLink } from '../data/content';
+import { openCookieSettings } from '../lib/cookieConsent';
 import { navigate } from '../lib/router';
 import { useNavigationContent } from '../sanity/SanityProvider';
 
@@ -122,6 +123,15 @@ export function Footer() {
                 <a href={link.href}>{link.label}</a>
               </li>
             ))}
+            <li>
+              <button
+                type="button"
+                className="footer-cookie-btn"
+                onClick={openCookieSettings}
+              >
+                Cookie Settings
+              </button>
+            </li>
           </ul>
         </div>
       </div>
