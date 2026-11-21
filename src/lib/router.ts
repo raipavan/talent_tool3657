@@ -16,7 +16,17 @@ const listeners = new Set<() => void>();
 const normalize = (pathname: string): string =>
   pathname.length > 1 && pathname.endsWith('/') ? pathname.slice(0, -1) : pathname;
 
-const getPath = (): string => normalize(window.location.pathname);
+const getPath = (): string => {
+  const hash = window.location.hash;
+  if (hash.startsWith('#/')) {
+    const raw = hash.slice(1).split('?')[0].split('#')[0];
+    return normalize(raw || '/');
+  }
+  if (hash === '#studio' || hash === '#admin') {
+    return '/studio';
+  }
+  return normalize(window.location.pathname);
+};
 
 const subscribe = (listener: () => void) => {
   listeners.add(listener);
@@ -34,7 +44,14 @@ export function usePath(): string {
 }
 
 export function useHash(): string {
-  return useSyncExternalStore(subscribe, () => window.location.hash, () => '');
+  return useSyncExternalStore(subscribe, () => {
+    const hash = window.location.hash;
+    if (hash.startsWith('#/')) {
+      const parts = hash.slice(1).split('#');
+      return parts.length > 1 ? '#' + parts.slice(1).join('#') : '';
+    }
+    return hash;
+  }, () => '');
 }
 
 /** Scroll to the element a hash names; returns false when it is not on the page. */
@@ -50,8 +67,15 @@ export function navigate(to: string): void {
   const url = new URL(to, window.location.origin);
   const samePage = normalize(url.pathname) === getPath();
 
-  if (url.pathname + url.search + url.hash !== window.location.pathname + window.location.search + window.location.hash) {
-    window.history.pushState(null, '', url.pathname + url.search + url.hash);
+  if (window.location.hash.startsWith('#/')) {
+    const newHash = '#' + url.pathname + (url.search || '');
+    if (window.location.hash !== newHash) {
+      window.location.hash = newHash;
+    }
+  } else {
+    if (url.pathname + url.search + url.hash !== window.location.pathname + window.location.search + window.location.hash) {
+      window.history.pushState(null, '', url.pathname + url.search + url.hash);
+    }
   }
   listeners.forEach((listener) => listener());
 
