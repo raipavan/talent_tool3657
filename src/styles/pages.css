@@ -1070,7 +1070,11 @@ a, button, input, select, textarea, summary { touch-action: manipulation; }
   .hero .role-swap { max-width: 100%; }
   .cta-inner > div, .roi-inputs input { min-width: 0; max-width: 100%; }
   .logo-row li { max-width: 100%; white-space: normal; overflow-wrap: anywhere; text-align: center; }
-  .metrics-grid, .int-grid { grid-template-columns: repeat(auto-fit, minmax(min(100%, 9rem), 1fr)); }
+  .int-grid { grid-template-columns: repeat(auto-fit, minmax(min(100%, 9rem), 1fr)); }
+  .metrics-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; margin-top: 28px; }
+  .metric { padding: 18px 14px; }
+  .metric strong { font-size: clamp(1.75rem, 7vw, 2.25rem); margin-bottom: 6px; }
+  .metric span { font-size: 0.85rem; line-height: 1.4; }
   .int-tile { padding-inline: 12px; overflow-wrap: anywhere; }
   .catalog-toolbar .filter { gap: 8px; }
   .filter-opt { padding-inline: 13px; }
