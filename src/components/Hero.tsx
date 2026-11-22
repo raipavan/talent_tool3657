@@ -44,8 +44,8 @@ export function Hero() {
         className="hero-bg"
         src={bgImage}
         alt=""
-        width={2752}
-        height={1536}
+        width={1678}
+        height={937}
         decoding="sync"
         fetchPriority="high"
         aria-hidden="true"
