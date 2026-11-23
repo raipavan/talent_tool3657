@@ -4,6 +4,8 @@ import { useCms } from '../../cms/CmsProvider';
 export function BackendSettingsPanel() {
   const {
     isBackendLive,
+    storageMode,
+    hasDraftChanges,
     lastSyncedAt,
     cmsApiUrl,
     setBackendUrl,
@@ -91,7 +93,9 @@ export function BackendSettingsPanel() {
             {isBackendLive ? '● Connected to Self-Hosted CMS Backend API' : '○ Local Preview Mode (Backend Offline)'}
           </strong>
           <div style={{ fontSize: '0.82rem', color: '#475569', marginTop: 4 }}>
-            Endpoint: <code>{cmsApiUrl || 'Same-Origin (/api/cms/*)'}</code>
+            Engine: <strong>{storageMode === 'postgresql' ? 'PostgreSQL (Persistent Cloud DB)' : 'Local Atomic JSON'}</strong>
+            {' · '}Endpoint: <code>{cmsApiUrl || 'Same-Origin (/api/cms/*)'}</code>
+            {hasDraftChanges && ' · Unpublished draft changes pending'}
             {lastSyncedAt && ` · Last saved: ${new Date(lastSyncedAt).toLocaleString()}`}
           </div>
         </div>

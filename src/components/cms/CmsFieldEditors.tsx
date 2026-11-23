@@ -1,5 +1,6 @@
 import { useState, type ReactNode } from 'react';
-import { uploadCmsImage } from '../../cms/api';
+import { uploadCmsMedia } from '../../cms/api';
+import { MediaPickerModal } from './MediaPickerModal';
 
 const inputStyle: React.CSSProperties = {
   width: '100%',
@@ -86,13 +87,16 @@ export function CmsImageInput({
   value,
   onChange,
   placeholder = '/assets/...',
+  folder = 'uploads',
 }: {
   label: string;
   value: string;
   onChange: (val: string) => void;
   placeholder?: string;
+  folder?: string;
 }) {
   const [uploading, setUploading] = useState(false);
+  const [isPickerOpen, setIsPickerOpen] = useState(false);
   const [msg, setMsg] = useState('');
 
   const handleFile = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -103,13 +107,12 @@ export function CmsImageInput({
     const reader = new FileReader();
     reader.onload = async () => {
       const dataUrl = String(reader.result || '');
-      const res = await uploadCmsImage(file.name, dataUrl);
+      const res = await uploadCmsMedia(file.name, dataUrl, '', folder);
       setUploading(false);
       if (res.ok && res.url) {
         onChange(res.url);
         setMsg('Uploaded to backend!');
       } else {
-        // Fallback: use data URL locally if backend isn't reachable
         onChange(dataUrl);
         setMsg(res.error ? `Saved inline (${res.error})` : 'Saved inline');
       }
@@ -119,6 +122,14 @@ export function CmsImageInput({
 
   return (
     <div style={{ marginBottom: 12 }}>
+      <MediaPickerModal
+        isOpen={isPickerOpen}
+        onClose={() => setIsPickerOpen(false)}
+        onSelect={(url) => {
+          onChange(url);
+          setMsg('Selected from Media Library');
+        }}
+      />
       <label style={labelStyle}>{label}</label>
       <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
         <input
@@ -128,6 +139,23 @@ export function CmsImageInput({
           placeholder={placeholder}
           style={{ ...inputStyle, flex: 1 }}
         />
+        <button
+          type="button"
+          onClick={() => setIsPickerOpen(true)}
+          style={{
+            padding: '8px 12px',
+            borderRadius: 6,
+            background: '#e0f2fe',
+            color: '#0369a1',
+            border: '1px solid #bae6fd',
+            fontSize: '0.78rem',
+            fontWeight: 700,
+            cursor: 'pointer',
+            whiteSpace: 'nowrap',
+          }}
+        >
+          🖼️ Browse Media
+        </button>
         <label
           style={{
             padding: '8px 12px',
@@ -140,7 +168,7 @@ export function CmsImageInput({
             whiteSpace: 'nowrap',
           }}
         >
-          {uploading ? 'Uploading...' : 'Upload Image'}
+          {uploading ? 'Uploading...' : 'Upload'}
           <input type="file" accept="image/*" onChange={handleFile} style={{ display: 'none' }} />
         </label>
       </div>

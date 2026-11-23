@@ -6,7 +6,9 @@ import {
   CmsStringListEditor,
   CmsTextArea,
   CmsTextInput,
+  CmsImageInput,
 } from './CmsFieldEditors';
+import { RichTextEditor } from './RichTextEditor';
 
 type PageEditorSection =
   | 'products'
@@ -36,7 +38,7 @@ const SECTIONS: { id: PageEditorSection; label: string }[] = [
 ];
 
 export function PagesContentEditor({ initialSection = 'products' }: { initialSection?: PageEditorSection }) {
-  const { site, updateSiteSection } = useCms();
+  const { draftSite: site, updateSiteSection } = useCms();
   const [section, setSection] = useState<PageEditorSection>(initialSection);
   const [selectedProductIdx, setSelectedProductIdx] = useState(0);
 
@@ -477,37 +479,96 @@ export function PagesContentEditor({ initialSection = 'products' }: { initialSec
       {/* ---------------- RESOURCES & BLOG ---------------- */}
       {section === 'resources' && (
         <div>
-          <CmsAccordion title="Blog Articles (/blog)" badge={`${site.resourcesPage.blogPosts.length} articles`} defaultOpen>
+          <CmsAccordion title="Blog Articles & Rich Text Publisher (/blog)" badge={`${site.resourcesPage.blogPosts.length} articles`} defaultOpen>
             <CmsListEditor
               title="Blog Posts"
               items={site.resourcesPage.blogPosts}
               onChange={(blogPosts) => updateSiteSection('resourcesPage', { ...site.resourcesPage, blogPosts })}
               createNew={() => ({
                 id: `post-${Date.now()}`,
+                slug: `article-${Date.now()}`,
+                status: 'published' as const,
                 category: 'Hiring Strategy',
                 title: 'New Blog Article',
                 tagline: '',
                 readTime: '5 min read',
-                date: 'November 2026',
+                date: new Date().toLocaleDateString('en-US', { month: 'long', year: 'numeric' }),
                 author: 'TalentPool365 Team',
-                summary: '',
-                paragraphs: ['Write your article paragraph here.'],
+                summary: 'Brief overview of this article for search engine cards and blog listings.',
+                coverImage: 'https://images.unsplash.com/photo-1522071820081-009f0129c71c?auto=format&fit=crop&w=1200&q=80',
+                bodyMarkdown: '## Introduction\n\nStart writing your article here using Markdown or rich text controls.\n\n### Key Takeaways\n- Sourcing automation reduces manual screening time\n- Bias mitigation ensures ethical hiring',
+                paragraphs: ['Start writing your article here.'],
               })}
               addLabel="+ Add Blog Post"
               renderItem={(post, _, update) => (
-                <>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
                   <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr', gap: 8 }}>
-                    <CmsTextInput label="Title" value={post.title} onChange={(v) => update({ title: v })} />
-                    <CmsTextInput label="Category" value={post.category} onChange={(v) => update({ category: v })} />
-                    <CmsTextInput label="Date" value={post.date} onChange={(v) => update({ date: v })} />
+                    <CmsTextInput label="Article Title" value={post.title} onChange={(v) => update({ title: v })} />
+                    <CmsTextInput
+                      label="URL Slug (/blog/:slug)"
+                      value={post.slug || post.id}
+                      onChange={(v) => update({ slug: v.toLowerCase().replace(/[^a-z0-9-]/g, '-') })}
+                    />
+                    <div style={{ marginBottom: 12 }}>
+                      <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 700, color: '#334155', marginBottom: 4 }}>
+                        Status
+                      </label>
+                      <select
+                        value={post.status || 'published'}
+                        onChange={(e) => update({ status: e.target.value as 'draft' | 'published' })}
+                        style={{ width: '100%', padding: '8px 10px', borderRadius: 6, border: '1px solid #cbd5e1', fontWeight: 600 }}
+                      >
+                        <option value="published">🟢 Published</option>
+                        <option value="draft">🟡 Draft (Hidden)</option>
+                      </select>
+                    </div>
                   </div>
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 8 }}>
+                    <CmsTextInput label="Category" value={post.category} onChange={(v) => update({ category: v })} />
                     <CmsTextInput label="Author" value={post.author} onChange={(v) => update({ author: v })} />
                     <CmsTextInput label="Read Time" value={post.readTime} onChange={(v) => update({ readTime: v })} />
                   </div>
-                  <CmsTextArea label="Summary" value={post.summary} onChange={(v) => update({ summary: v })} rows={2} />
-                  <CmsStringListEditor label="Article Paragraphs" items={post.paragraphs} onChange={(v) => update({ paragraphs: v })} />
-                </>
+
+                  <CmsImageInput
+                    label="Cover Image (with Media Library Picker)"
+                    value={post.coverImage || ''}
+                    onChange={(v) => update({ coverImage: v })}
+                    folder="blog"
+                  />
+
+                  <CmsTextArea
+                    label="Short Summary / Excerpt (shown on index & cards)"
+                    value={post.summary || ''}
+                    onChange={(v) => update({ summary: v })}
+                    rows={2}
+                  />
+
+                  <div>
+                    <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 700, color: '#334155', marginBottom: 6 }}>
+                      Full Article Body (WYSIWYG Markdown & Image Embeds)
+                    </label>
+                    <RichTextEditor
+                      value={post.bodyMarkdown || (post.paragraphs ? post.paragraphs.join('\n\n') : '')}
+                      onChange={(v) => update({ bodyMarkdown: v, paragraphs: v.split('\n\n').filter(Boolean) })}
+                      placeholder="Write your blog post in markdown..."
+                      rows={10}
+                    />
+                  </div>
+
+                  {post.slug && (
+                    <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+                      <a
+                        href={`/blog/${post.slug}`}
+                        target="_blank"
+                        rel="noreferrer"
+                        style={{ fontSize: '0.78rem', color: 'var(--color-secondary)', fontWeight: 600, textDecoration: 'none' }}
+                      >
+                        🔗 Preview Article Live at /blog/{post.slug} →
+                      </a>
+                    </div>
+                  )}
+                </div>
               )}
             />
           </CmsAccordion>

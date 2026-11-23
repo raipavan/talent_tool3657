@@ -9,7 +9,7 @@ import {
 } from './CmsFieldEditors';
 
 export function HomeSectionEditor() {
-  const { site, updateHome, updateSiteSection } = useCms();
+  const { draftSite: site, updateHome, updateSiteSection } = useCms();
   const home = site.home;
   const banners = site.globalBanners;
 

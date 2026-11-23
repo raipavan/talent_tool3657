@@ -1,31 +1,46 @@
-import { createContext, useContext, useEffect, useState, useCallback, type ReactNode } from 'react';
+import {
+  createContext,
+  useContext,
+  useEffect,
+  useState,
+  useCallback,
+  type ReactNode,
+} from 'react';
 import {
   defaultSiteContent,
   type SiteContentModel,
   type PricingContentModel,
   type PageContentOverride,
+  type CustomPageModel,
+  type RedirectModel,
 } from './siteDefaults';
 import {
   checkCmsHealth,
   fetchCmsContent,
-  saveCmsContentBackend,
-  saveCmsSectionBackend,
-  resetCmsBackend,
+  saveCmsDraftBackend,
+  patchCmsDraftSectionBackend,
+  publishCmsDraft,
+  discardCmsDraft,
+  createSchedule,
+  fetchCurrentUser,
   getCmsApiBaseUrl,
   setCmsApiBaseUrl,
   getAuthToken,
 } from './api';
+import type { CmsUser } from './permissions';
 
 export * from './siteDefaults';
+export * from './permissions';
 
 const STORAGE_KEY_FULL = 'tp365_cms_site_v3';
+const STORAGE_KEY_DRAFT = 'tp365_cms_draft_v3';
 
 function isPlainObject(val: unknown): val is Record<string, unknown> {
   return Boolean(val && typeof val === 'object' && !Array.isArray(val));
 }
 
 /** Deep-merge saved partial overrides over defaults. Arrays replace cleanly. */
-function deepMerge<T>(defaults: T, overrides: unknown): T {
+export function deepMerge<T>(defaults: T, overrides: unknown): T {
   if (overrides === undefined || overrides === null) return defaults;
   if (Array.isArray(defaults)) {
     return (Array.isArray(overrides) ? overrides : defaults) as T;
@@ -48,17 +63,27 @@ function deepMerge<T>(defaults: T, overrides: unknown): T {
 
 export interface CmsContextType {
   site: SiteContentModel;
+  draftSite: SiteContentModel;
+  liveSite: SiteContentModel;
+  isPreviewMode: boolean;
+  hasDraftChanges: boolean;
+  changedSectionKeys: string[];
+  liveVersion: number;
+  draftVersion: number;
+  storageMode: 'postgresql' | 'local-json';
+  currentUser: CmsUser | null;
+  customPages: CustomPageModel[];
+  redirects: RedirectModel[];
+
   // Backwards-compatible aliases
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   home: any;
   pricing: PricingContentModel;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   navigation: any;
   pageOverrides: Record<string, PageContentOverride>;
 
   // Backend status
   isBackendLive: boolean;
-  isSanityLive: boolean; // alias for compatibility
+  isSanityLive: boolean;
   sanityConfig: { projectId: string; dataset: string; apiVersion: string; token?: string };
   updateSanityConfig: (cfg: { projectId: string; dataset: string; apiVersion: string; token?: string }) => void;
   pushToSanity: () => Promise<{ success: boolean; message: string }>;
@@ -68,21 +93,25 @@ export interface CmsContextType {
   setBackendUrl: (url: string) => Promise<void>;
   refreshFromBackend: () => Promise<boolean>;
 
-  // Section updaters
+  // Section updaters (operate on draft)
   updateSiteSection: <K extends keyof SiteContentModel>(section: K, value: SiteContentModel[K]) => void;
   updatePricing: (newPricing: PricingContentModel) => void;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   updateHome: (newHome: any) => void;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   updateNavigation: (newNav: any) => void;
   updatePageOverride: (pageKey: string, override: Partial<PageContentOverride>) => void;
 
-  // Backend Publishing & Backup
+  // Publishing & Versioning Actions
+  publishDraft: (label?: string, note?: string) => Promise<{ success: boolean; message: string }>;
+  discardDraft: () => Promise<{ success: boolean; message: string }>;
+  schedulePublish: (title: string, publishAt: string, note?: string) => Promise<{ success: boolean; message: string }>;
+
+  // Backup & Reset Actions
   publishAllToBackend: () => Promise<{ success: boolean; message: string }>;
   resetSection: <K extends keyof SiteContentModel>(section: K) => Promise<void>;
   resetDefaults: () => Promise<void>;
   exportSiteJson: () => string;
   importSiteJson: (raw: string) => { success: boolean; message: string };
+  reloadCustomPages: () => Promise<void>;
 }
 
 const noop = () => {};
@@ -90,6 +119,17 @@ const noopAsync = async () => {};
 
 const CmsContext = createContext<CmsContextType>({
   site: defaultSiteContent,
+  draftSite: defaultSiteContent,
+  liveSite: defaultSiteContent,
+  isPreviewMode: false,
+  hasDraftChanges: false,
+  changedSectionKeys: [],
+  liveVersion: 1,
+  draftVersion: 1,
+  storageMode: 'local-json',
+  currentUser: null,
+  customPages: [],
+  redirects: [],
   home: defaultSiteContent.home,
   pricing: defaultSiteContent.pricing,
   navigation: defaultSiteContent.navigation,
@@ -109,52 +149,61 @@ const CmsContext = createContext<CmsContextType>({
   updateHome: noop,
   updateNavigation: noop,
   updatePageOverride: noop,
+  publishDraft: async () => ({ success: false, message: 'Not initialized' }),
+  discardDraft: async () => ({ success: false, message: 'Not initialized' }),
+  schedulePublish: async () => ({ success: false, message: 'Not initialized' }),
   publishAllToBackend: async () => ({ success: false, message: 'Not initialized' }),
   resetSection: noopAsync,
   resetDefaults: noopAsync,
   exportSiteJson: () => JSON.stringify(defaultSiteContent, null, 2),
   importSiteJson: () => ({ success: false, message: 'Not initialized' }),
+  reloadCustomPages: noopAsync,
 });
 
-function loadLocalCache(): SiteContentModel {
+function loadLocalCache(key: string): SiteContentModel {
   try {
-    const saved = localStorage.getItem(STORAGE_KEY_FULL);
-    if (saved) {
-      return deepMerge(defaultSiteContent, JSON.parse(saved));
-    }
-    // Migrate legacy v1 localStorage keys if present
-    const legacyHome = localStorage.getItem('tp365_cms_home');
-    const legacyNav = localStorage.getItem('tp365_cms_nav');
-    const legacyPricing = localStorage.getItem('tp365_cms_pricing');
-    const legacyOverrides = localStorage.getItem('tp365_cms_page_overrides');
-    if (legacyHome || legacyNav || legacyPricing || legacyOverrides) {
-      return deepMerge(defaultSiteContent, {
-        home: legacyHome ? JSON.parse(legacyHome) : undefined,
-        navigation: legacyNav ? JSON.parse(legacyNav) : undefined,
-        pricing: legacyPricing ? JSON.parse(legacyPricing) : undefined,
-        pageOverrides: legacyOverrides ? JSON.parse(legacyOverrides) : undefined,
-      });
-    }
+    const saved = localStorage.getItem(key);
+    if (saved) return deepMerge(defaultSiteContent, JSON.parse(saved));
   } catch {
-    // ignore parse errors
+    // ignore parse error
   }
   return defaultSiteContent;
 }
 
-function saveLocalCache(next: SiteContentModel): void {
+function saveLocalCache(key: string, data: SiteContentModel): void {
   try {
-    localStorage.setItem(STORAGE_KEY_FULL, JSON.stringify(next));
+    localStorage.setItem(key, JSON.stringify(data));
   } catch {
-    // ignore quota errors
+    // ignore
   }
 }
 
 export function CmsProvider({ children }: { children: ReactNode }) {
-  const [site, setSite] = useState<SiteContentModel>(() => loadLocalCache());
+  const isPreviewParam =
+    typeof window !== 'undefined' &&
+    new URLSearchParams(window.location.search).get('preview') === 'draft';
+
+  const [liveSite, setLiveSite] = useState<SiteContentModel>(() => loadLocalCache(STORAGE_KEY_FULL));
+  const [draftSite, setDraftSite] = useState<SiteContentModel>(() => loadLocalCache(STORAGE_KEY_DRAFT));
+  const [isPreviewMode, setIsPreviewMode] = useState(isPreviewParam);
+  const [liveVersion, setLiveVersion] = useState(1);
+  const [draftVersion, setDraftVersion] = useState(1);
+  const [storageMode, setStorageMode] = useState<'postgresql' | 'local-json'>('local-json');
+  const [currentUser, setCurrentUser] = useState<CmsUser | null>(null);
+  const [customPages, setCustomPages] = useState<CustomPageModel[]>([]);
+  const [redirects, setRedirects] = useState<RedirectModel[]>([]);
   const [isBackendLive, setIsBackendLive] = useState(false);
   const [lastSyncedAt, setLastSyncedAt] = useState<string | null>(null);
-  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const [cmsApiUrl, setCmsApiUrlState] = useState(() => getCmsApiBaseUrl());
+
+  // Which sections have differences between live and draft
+  const changedSectionKeys = Object.keys(defaultSiteContent).filter((key) => {
+    return JSON.stringify((draftSite as any)[key]) !== JSON.stringify((liveSite as any)[key]);
+  });
+  const hasDraftChanges = changedSectionKeys.length > 0;
+
+  // The active site model seen by the current page: in preview mode it sees draft, in normal mode live
+  const site = isPreviewMode ? draftSite : liveSite;
 
   const refreshFromBackend = useCallback(async (): Promise<boolean> => {
     const health = await checkCmsHealth();
@@ -163,22 +212,67 @@ export function CmsProvider({ children }: { children: ReactNode }) {
       return false;
     }
     setIsBackendLive(true);
-    const remote = await fetchCmsContent();
-    if (remote) {
-      setLastSyncedAt(remote.updatedAt);
-      if (remote.content && Object.keys(remote.content).length > 0) {
-        const merged = deepMerge(defaultSiteContent, remote.content);
-        setSite(merged);
-        saveLocalCache(merged);
-        setHasUnsavedChanges(false);
+    if (health.storageMode) setStorageMode(health.storageMode);
+    if (typeof health.liveVersion === 'number') setLiveVersion(health.liveVersion);
+    if (typeof health.draftVersion === 'number') setDraftVersion(health.draftVersion);
+
+    // Fetch user info if token exists
+    if (getAuthToken()) {
+      const meRes = await fetchCurrentUser();
+      if (meRes.ok && meRes.user) {
+        setCurrentUser(meRes.user);
+      } else {
+        setCurrentUser(null);
+      }
+    } else {
+      setCurrentUser(null);
+    }
+
+    // 1. Fetch live content
+    const liveRes = await fetchCmsContent('live');
+    if (liveRes && liveRes.content) {
+      const mergedLive = deepMerge(defaultSiteContent, liveRes.content);
+      setLiveSite(mergedLive);
+      saveLocalCache(STORAGE_KEY_FULL, mergedLive);
+      if (typeof liveRes.version === 'number') setLiveVersion(liveRes.version);
+      if (liveRes.updatedAt) setLastSyncedAt(liveRes.updatedAt);
+      if (liveRes.customPages) setCustomPages(liveRes.customPages);
+      if (liveRes.redirects) setRedirects(liveRes.redirects);
+    }
+
+    // 2. If admin token exists, fetch draft content
+    if (getAuthToken()) {
+      const draftRes = await fetchCmsContent('draft');
+      if (draftRes && draftRes.content) {
+        const mergedDraft = deepMerge(defaultSiteContent, draftRes.content);
+        setDraftSite(mergedDraft);
+        saveLocalCache(STORAGE_KEY_DRAFT, mergedDraft);
+        if (typeof draftRes.version === 'number') setDraftVersion(draftRes.version);
       }
     }
+
     return true;
   }, []);
 
   useEffect(() => {
     refreshFromBackend();
   }, [refreshFromBackend]);
+
+  // Listen for real-time draft synchronization via postMessage from Studio split-preview iframe
+  useEffect(() => {
+    const onMessage = (event: MessageEvent) => {
+      if (event.data && event.data.type === 'tp365:cms:draft-sync') {
+        const incomingDraft = event.data.draft;
+        if (incomingDraft) {
+          const merged = deepMerge(defaultSiteContent, incomingDraft);
+          setDraftSite(merged);
+          setIsPreviewMode(true);
+        }
+      }
+    };
+    window.addEventListener('message', onMessage);
+    return () => window.removeEventListener('message', onMessage);
+  }, []);
 
   const setBackendUrl = async (url: string) => {
     setCmsApiBaseUrl(url);
@@ -188,20 +282,27 @@ export function CmsProvider({ children }: { children: ReactNode }) {
 
   const updateSiteSection = useCallback(
     <K extends keyof SiteContentModel>(section: K, value: SiteContentModel[K]) => {
-      setSite((prev) => {
+      setDraftSite((prev) => {
         const next = { ...prev, [section]: value };
-        saveLocalCache(next);
+        saveLocalCache(STORAGE_KEY_DRAFT, next);
+
+        // Broadcast to preview iframes
+        if (typeof window !== 'undefined') {
+          window.postMessage({ type: 'tp365:cms:draft-sync', draft: next }, '*');
+          const iframes = document.querySelectorAll<HTMLIFrameElement>('iframe[src*="preview=draft"]');
+          iframes.forEach((ifr) => {
+            ifr.contentWindow?.postMessage({ type: 'tp365:cms:draft-sync', draft: next }, '*');
+          });
+        }
         return next;
       });
-      setHasUnsavedChanges(true);
 
-      // Auto-sync to backend in background if admin has an active backend token
+      // Persist draft section to backend
       if (getAuthToken()) {
-        saveCmsSectionBackend(String(section), value).then((res) => {
+        patchCmsDraftSectionBackend(String(section), value).then((res) => {
           if (res.ok) {
             setIsBackendLive(true);
             if (res.updatedAt) setLastSyncedAt(res.updatedAt);
-            setHasUnsavedChanges(false);
           }
         });
       }
@@ -214,10 +315,11 @@ export function CmsProvider({ children }: { children: ReactNode }) {
     [updateSiteSection],
   );
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const updateHome = useCallback((newHome: any) => updateSiteSection('home', newHome), [updateSiteSection]);
+  const updateHome = useCallback(
+    (newHome: any) => updateSiteSection('home', newHome),
+    [updateSiteSection],
+  );
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const updateNavigation = useCallback(
     (newNav: any) => updateSiteSection('navigation', newNav),
     [updateSiteSection],
@@ -225,103 +327,117 @@ export function CmsProvider({ children }: { children: ReactNode }) {
 
   const updatePageOverride = useCallback(
     (pageKey: string, override: Partial<PageContentOverride>) => {
-      setSite((prev) => {
-        const nextOverrides = {
-          ...prev.pageOverrides,
-          [pageKey]: { ...(prev.pageOverrides[pageKey] || {}), ...override },
-        };
-        const next = { ...prev, pageOverrides: nextOverrides };
-        saveLocalCache(next);
-        if (getAuthToken()) {
-          saveCmsSectionBackend('pageOverrides', nextOverrides).then((res) => {
-            if (res.ok && res.updatedAt) {
-              setLastSyncedAt(res.updatedAt);
-              setHasUnsavedChanges(false);
-            }
-          });
-        }
-        return next;
-      });
-      setHasUnsavedChanges(true);
+      const nextOverrides = {
+        ...draftSite.pageOverrides,
+        [pageKey]: { ...(draftSite.pageOverrides[pageKey] || {}), ...override },
+      };
+      updateSiteSection('pageOverrides', nextOverrides);
+    },
+    [draftSite.pageOverrides, updateSiteSection],
+  );
+
+  const publishDraft = useCallback(
+    async (label?: string, note?: string): Promise<{ success: boolean; message: string }> => {
+      if (getAuthToken()) {
+        await saveCmsDraftBackend(draftSite);
+      }
+      const res = await publishCmsDraft(label, note);
+      if (res.ok) {
+        setLiveSite(draftSite);
+        saveLocalCache(STORAGE_KEY_FULL, draftSite);
+        if (typeof res.liveDoc?.version === 'number') setLiveVersion(res.liveDoc.version);
+        if (res.liveDoc?.updatedAt) setLastSyncedAt(res.liveDoc.updatedAt);
+        return { success: true, message: 'Published all draft changes live to the website!' };
+      }
+      return { success: false, message: res.error || 'Failed to publish draft.' };
+    },
+    [draftSite],
+  );
+
+  const discardDraftAction = useCallback(async (): Promise<{ success: boolean; message: string }> => {
+    const res = await discardCmsDraft();
+    if (res.ok) {
+      setDraftSite(liveSite);
+      saveLocalCache(STORAGE_KEY_DRAFT, liveSite);
+      return { success: true, message: 'Draft reverted back to current live website content.' };
+    }
+    return { success: false, message: res.error || 'Failed to discard draft.' };
+  }, [liveSite]);
+
+  const schedulePublishAction = useCallback(
+    async (title: string, publishAt: string, note?: string): Promise<{ success: boolean; message: string }> => {
+      const res = await createSchedule(title, publishAt, note);
+      if (res.ok) {
+        return { success: true, message: `Release scheduled for ${new Date(publishAt).toLocaleString()}!` };
+      }
+      return { success: false, message: res.error || 'Failed to schedule release.' };
     },
     [],
   );
 
-  const publishAllToBackend = useCallback(async (): Promise<{ success: boolean; message: string }> => {
-    const res = await saveCmsContentBackend(site);
-    if (res.ok) {
-      setIsBackendLive(true);
-      if (res.updatedAt) setLastSyncedAt(res.updatedAt);
-      setHasUnsavedChanges(false);
-      return { success: true, message: 'Published all website content live to your CMS backend!' };
-    }
-    return {
-      success: false,
-      message: res.error || 'Could not reach the CMS backend API. Make sure the Node server is running or sign in again.',
-    };
-  }, [site]);
+  const reloadCustomPages = useCallback(async () => {
+    const env = isPreviewMode ? 'draft' : 'live';
+    const res = await fetchCmsContent(env);
+    if (res?.customPages) setCustomPages(res.customPages);
+    if (res?.redirects) setRedirects(res.redirects);
+  }, [isPreviewMode]);
 
-  const resetSection = useCallback(async <K extends keyof SiteContentModel>(section: K) => {
-    setSite((prev) => {
-      const next = { ...prev, [section]: defaultSiteContent[section] };
-      saveLocalCache(next);
-      return next;
-    });
-    if (getAuthToken()) {
-      await resetCmsBackend(String(section));
-    }
-  }, []);
+  const resetSection = useCallback(
+    async <K extends keyof SiteContentModel>(section: K) => {
+      updateSiteSection(section, defaultSiteContent[section]);
+    },
+    [updateSiteSection],
+  );
 
   const resetDefaults = useCallback(async () => {
-    setSite(defaultSiteContent);
-    try {
-      localStorage.removeItem(STORAGE_KEY_FULL);
-      localStorage.removeItem('tp365_cms_home');
-      localStorage.removeItem('tp365_cms_nav');
-      localStorage.removeItem('tp365_cms_pricing');
-      localStorage.removeItem('tp365_cms_page_overrides');
-    } catch {
-      // ignore
-    }
+    setDraftSite(defaultSiteContent);
+    setLiveSite(defaultSiteContent);
+    saveLocalCache(STORAGE_KEY_FULL, defaultSiteContent);
+    saveLocalCache(STORAGE_KEY_DRAFT, defaultSiteContent);
     if (getAuthToken()) {
-      await resetCmsBackend();
+      await saveCmsDraftBackend(defaultSiteContent);
+      await publishCmsDraft('Factory Reset', 'Restored to defaults');
     }
-    setHasUnsavedChanges(false);
   }, []);
 
   const exportSiteJson = useCallback(() => JSON.stringify(site, null, 2), [site]);
 
-  const importSiteJson = useCallback((raw: string): { success: boolean; message: string } => {
-    try {
-      const parsed = JSON.parse(raw);
-      if (!isPlainObject(parsed)) {
-        return { success: false, message: 'JSON root must be an object.' };
+  const importSiteJson = useCallback(
+    (raw: string): { success: boolean; message: string } => {
+      try {
+        const parsed = JSON.parse(raw);
+        if (!isPlainObject(parsed)) {
+          return { success: false, message: 'JSON root must be an object.' };
+        }
+        const merged = deepMerge(defaultSiteContent, parsed);
+        setDraftSite(merged);
+        saveLocalCache(STORAGE_KEY_DRAFT, merged);
+        if (getAuthToken()) {
+          saveCmsDraftBackend(merged);
+        }
+        return { success: true, message: 'Successfully imported website content into draft!' };
+      } catch (err) {
+        return { success: false, message: `Invalid JSON: ${err instanceof Error ? err.message : String(err)}` };
       }
-      const merged = deepMerge(defaultSiteContent, parsed);
-      setSite(merged);
-      saveLocalCache(merged);
-      setHasUnsavedChanges(true);
-      if (getAuthToken()) {
-        saveCmsContentBackend(merged).then((res) => {
-          if (res.ok) {
-            if (res.updatedAt) setLastSyncedAt(res.updatedAt);
-            setHasUnsavedChanges(false);
-          }
-        });
-      }
-      return { success: true, message: 'Successfully imported full website content!' };
-    } catch (err) {
-      return {
-        success: false,
-        message: `Invalid JSON: ${err instanceof Error ? err.message : String(err)}`,
-      };
-    }
-  }, []);
+    },
+    [],
+  );
 
   return (
     <CmsContext.Provider
       value={{
         site,
+        draftSite,
+        liveSite,
+        isPreviewMode,
+        hasDraftChanges,
+        changedSectionKeys,
+        liveVersion,
+        draftVersion,
+        storageMode,
+        currentUser,
+        customPages,
+        redirects,
         home: site.home,
         pricing: site.pricing,
         navigation: site.navigation,
@@ -330,9 +446,9 @@ export function CmsProvider({ children }: { children: ReactNode }) {
         isSanityLive: isBackendLive,
         sanityConfig: { projectId: '', dataset: 'production', apiVersion: '2024-03-01', token: '' },
         updateSanityConfig: noop,
-        pushToSanity: publishAllToBackend,
+        pushToSanity: async () => publishDraft(),
         lastSyncedAt,
-        hasUnsavedChanges,
+        hasUnsavedChanges: hasDraftChanges,
         cmsApiUrl,
         setBackendUrl,
         refreshFromBackend,
@@ -341,11 +457,15 @@ export function CmsProvider({ children }: { children: ReactNode }) {
         updateHome,
         updateNavigation,
         updatePageOverride,
-        publishAllToBackend,
+        publishDraft,
+        discardDraft: discardDraftAction,
+        schedulePublish: schedulePublishAction,
+        publishAllToBackend: async () => publishDraft(),
         resetSection,
         resetDefaults,
         exportSiteJson,
         importSiteJson,
+        reloadCustomPages,
       }}
     >
       {children}
@@ -353,7 +473,7 @@ export function CmsProvider({ children }: { children: ReactNode }) {
   );
 }
 
-/* ---------------- Typed Selector Hooks ---------------- */
+// ---------------- Typed Selector Hooks ----------------
 
 export function useCms() {
   return useContext(CmsContext);

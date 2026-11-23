@@ -87,6 +87,31 @@ export interface IntegrationItem {
   features: string[];
 }
 
+export interface PageSeoMeta {
+  metaTitle?: string;
+  metaDescription?: string;
+  ogImage?: string;
+  canonicalUrl?: string;
+  noIndex?: boolean;
+  structuredDataType?: string;
+}
+
+export interface SiteSettingsModel {
+  siteName?: string;
+  googleSearchConsole?: string;
+  ga4MeasurementId?: string;
+  gtmContainerId?: string;
+  metaPixelId?: string;
+  linkedInPartnerId?: string;
+  hotjarId?: string;
+  chatWidgetCode?: string;
+  customHeaderScript?: string;
+  customFooterScript?: string;
+  customRobotsTxt?: string;
+  defaultOgImage?: string;
+  updatedAt?: string;
+}
+
 export interface BlogPost {
   id: string;
   category: string;
@@ -97,6 +122,125 @@ export interface BlogPost {
   author: string;
   summary: string;
   paragraphs: string[];
+  slug?: string;
+  coverImage?: string;
+  bodyMarkdown?: string;
+  status?: 'published' | 'draft';
+  seo?: PageSeoMeta;
+}
+
+export type PageBlockType =
+  | 'hero'
+  | 'rich_text'
+  | 'feature_grid'
+  | 'media_split'
+  | 'metrics_band'
+  | 'faq'
+  | 'testimonials'
+  | 'cta_banner'
+  | 'lead_form';
+
+export interface BasePageBlock {
+  id: string;
+  type: PageBlockType;
+  title?: string;
+  subtitle?: string;
+}
+
+export interface HeroBlock extends BasePageBlock {
+  type: 'hero';
+  eyebrow?: string;
+  primaryCtaText?: string;
+  primaryCtaHref?: string;
+  secondaryCtaText?: string;
+  secondaryCtaHref?: string;
+  image?: string;
+  centered?: boolean;
+}
+
+export interface RichTextBlock extends BasePageBlock {
+  type: 'rich_text';
+  contentMarkdown: string;
+}
+
+export interface FeatureGridBlock extends BasePageBlock {
+  type: 'feature_grid';
+  columns?: 2 | 3 | 4;
+  items: { icon?: string; title: string; description: string; linkHref?: string }[];
+}
+
+export interface MediaSplitBlock extends BasePageBlock {
+  type: 'media_split';
+  image: string;
+  imagePosition?: 'left' | 'right';
+  badge?: string;
+  points: string[];
+}
+
+export interface MetricsBandBlock extends BasePageBlock {
+  type: 'metrics_band';
+  metrics: { value: string; label: string }[];
+}
+
+export interface FaqBlock extends BasePageBlock {
+  type: 'faq';
+  items: { question: string; answer: string }[];
+}
+
+export interface TestimonialsBlock extends BasePageBlock {
+  type: 'testimonials';
+  items: { quote: string; author: string; role: string; company?: string; avatar?: string }[];
+}
+
+export interface CtaBannerBlock extends BasePageBlock {
+  type: 'cta_banner';
+  primaryCtaText: string;
+  primaryCtaHref: string;
+  secondaryCtaText?: string;
+  secondaryCtaHref?: string;
+}
+
+export interface LeadFormBlock extends BasePageBlock {
+  type: 'lead_form';
+  formSubject?: string;
+  submitButtonText?: string;
+  includePhone?: boolean;
+  includeCompany?: boolean;
+}
+
+export type PageBlock =
+  | HeroBlock
+  | RichTextBlock
+  | FeatureGridBlock
+  | MediaSplitBlock
+  | MetricsBandBlock
+  | FaqBlock
+  | TestimonialsBlock
+  | CtaBannerBlock
+  | LeadFormBlock;
+
+export interface CustomPageModel {
+  id: string;
+  slug: string;
+  title: string;
+  status: 'draft' | 'published' | 'scheduled';
+  publishAt?: string | null;
+  blocks: PageBlock[];
+  seo?: PageSeoMeta;
+  author?: string;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface RedirectModel {
+  id: string;
+  sourcePath: string;
+  targetUrl: string;
+  statusCode: 301 | 302;
+  isActive: boolean;
+  hits?: number;
+  createdBy?: string;
+  createdAt?: string;
 }
 
 export interface ResourceItem {
@@ -281,6 +425,8 @@ export interface SiteContentModel {
     ctaSecondaryLabel: string;
     ctaSecondaryHref: string;
   };
+  siteSettings: SiteSettingsModel;
+  pageSeo: Record<string, PageSeoMeta>;
   pageOverrides: Record<string, PageContentOverride>;
 }
 
@@ -732,6 +878,11 @@ export const defaultSiteContent: SiteContentModel = {
       ctaSecondaryHref: '#contact',
       bgImage: '/assets/hero-aurevia-bg.png',
     },
+    demoVideoSection: {
+      title: 'Experience the Future of *AI Recruitment Tools*',
+      body: 'Explore how our AI recruitment software simplifies talent acquisition through automated candidate sourcing, intelligent resume screening, AI-powered interviews, and data-driven hiring decisions. Find the right talent faster while reducing manual effort and improving recruitment efficiency.',
+      videoUrl: '/assets/demo_video.mp4',
+    },
     logosLabel: 'Trusted by talent teams at',
     agentsSection: {
       title: 'Five *Agentic AI Agents* in Our AI Recruitment Tool Work Every Requisition',
@@ -1074,4 +1225,9 @@ export const defaultSiteContent: SiteContentModel = {
     ctaSecondaryHref: '/get-started#start-free-trial',
   },
   pageOverrides: {},
+  siteSettings: {
+    siteName: 'TalentPool365',
+    defaultOgImage: '/assets/hero-aurevia-bg.png',
+  },
+  pageSeo: {},
 };

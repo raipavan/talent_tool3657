@@ -187,6 +187,7 @@ export function BlogPage() {
   const featured = documentBlogPosts[0];
 
   const filteredPosts = documentBlogPosts.filter((post) => {
+    if (post.status === 'draft') return false;
     const matchCat = selectedCategory === 'All' || post.category === selectedCategory;
     const matchSearch =
       `${post.title} ${post.tagline} ${post.summary} ${post.category}`

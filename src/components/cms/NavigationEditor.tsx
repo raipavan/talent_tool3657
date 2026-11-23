@@ -7,7 +7,8 @@ import {
 } from './CmsFieldEditors';
 
 export function NavigationEditor() {
-  const { navigation, updateNavigation } = useCms();
+  const { draftSite, updateNavigation } = useCms();
+  const navigation = draftSite.navigation;
 
   const header = navigation?.header || {};
   const footer = navigation?.footer || {};

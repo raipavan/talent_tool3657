@@ -29,6 +29,14 @@ export default defineConfig({
         target: 'http://localhost:4050',
         changeOrigin: true,
       },
+      '/sitemap.xml': {
+        target: 'http://localhost:4050',
+        changeOrigin: true,
+      },
+      '/robots.txt': {
+        target: 'http://localhost:4050',
+        changeOrigin: true,
+      },
     },
   },
   build: {
