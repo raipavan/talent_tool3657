@@ -86,7 +86,7 @@ async function seed() {
       body: 'Explore how our AI recruitment software simplifies talent acquisition through automated candidate sourcing, intelligent resume screening, AI-powered interviews, and data-driven hiring decisions. Find the right talent faster while reducing manual effort and improving recruitment efficiency.',
       videoUrl: '/assets/demo_video.mp4',
     },
-    heroRoles: homeJson.heroRoles || ['advisors', 'engineers', 'analysts', 'operators', 'leaders'],
+    heroRoles: homeJson.heroRoles || ['operators', 'engineers', 'analysts'],
     heroProof: homeJson.heroProof || ['One connected hiring workflow', 'Human-led decisions', 'Built around your team'],
     metricsSection: {
       eyebrow: 'Proven impact',

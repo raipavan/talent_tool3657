@@ -1,219 +1,238 @@
-# TalentPool365 — Website
+# TalentPool365 — Website & Self-Hosted Enterprise CMS
 
-Marketing site for TalentPool365, built to the brand handoff v1.0: the landing
-page plus the header pages from the sitemap.
+Full-stack marketing website and self-hosted Content Management System for **TalentPool365**. Built with React 19, TypeScript, Vite, and an independent Node.js CMS backend supporting **PostgreSQL** (production) and **Local Atomic JSON** storage (zero-config local development).
 
-## Pages
+---
 
-| Header item | Path | Source |
-|---|---|---|
-| Home | `/` | `src/pages/Home.tsx` |
-| Products | `/products` (platform overview) | `src/pages/ProductsOverview.tsx` |
-| | `/products/talent-sourcing`, `candidate-screening`, `ai-assessments`, `ai-interviews`, `recruiter-workspace`, `candidate-engagement`, `hiring-offer-management`, `analytics-reporting`, `compliance-security` | `src/pages/ProductPage.tsx`, content in `content/products/*.json` |
-| Solutions | `/solutions` (`#by-industry`, `#by-company-size`, `#by-use-case`) | `src/pages/SolutionsPage.tsx`, `content/solutions.json` |
-| Pricing | `/pricing` (`#compare-plans`, `#custom-quote`) | `src/pages/PricingPage.tsx` |
-| About Us | `/company/about`, `leadership`, `careers`, `partners`, `technology`, `news`, `contact` | `src/pages/CompanyPages.tsx`, `content/company/*.json` |
+## Features at a Glance
 
-Integrations is deliberately not in the header: the footer links to the
-integrations section of the home page (`/#integrations`). Customers, Resources,
-Support and Legal from the sitemap are footer-only and not built yet.
+- **29 Editable Website Pages + Dynamic Page Builder**: Every headline, copy block, pricing tier, navigation link, product tab, FAQ, and resource page can be edited in Studio without touching code. Create unlimited custom landing pages at any slug using 9 modular blocks (Hero, Rich Text, Feature Grid, Media Split, Metrics Band, FAQ, Testimonials, CTA Banner, Lead Form).
+- **Rich Text & Markdown Blog (`/blog`, `/blog/:slug`)**: Built-in Markdown editor with live preview, draft/published toggle, cover image picker, and JSON-LD `Article` structured data.
+- **Draft / Live Publishing, Revisions & Scheduled Releases**: Stage edits in draft without affecting live visitors, inspect immutable revision snapshots, roll back in 1 click, or schedule releases for future deployment.
+- **Split-Screen Live Preview & Quick-Edit Bar**: Real-time `postMessage` synchronization across Desktop, Tablet, and Mobile viewports, plus an on-site floating quick-edit bar for signed-in admins.
+- **Media Library**: Upload images directly into PostgreSQL (`BYTEA`) or local disk (`./data/uploads/`), browse built-in `/assets/`, filter by folder, and edit alt text.
+- **Per-Page SEO Suite, Redirects & External Plugins**: Live Google SERP & Social Open Graph previews, server-side SSR meta tag injection, dynamic `/sitemap.xml` & `/robots.txt`, HTTP 301/302 URL redirects, and no-code plugin fields for GA4, GTM, Meta Pixel, LinkedIn Insight, Hotjar, chat widgets, and custom `<head>` / footer scripts.
+- **Multi-User RBAC & Audit Trail**: Four built-in roles (`super_admin`, `editor`, `seo_manager`, `reviewer`), scrypt password hashing, HMAC-signed JWTs, IP login rate limiting, and tamper-evident audit logs.
+- **Leads Inbox & Outbound Webhooks**: Captures enquiries with honeypot spam protection, status tracking, internal notes, CSV export, and HMAC-SHA256 signed webhook delivery (`X-TP365-Signature`).
 
-Each product capability from the sitemap has its own anchor, for example
-`/products/talent-sourcing#resume-database-search`.
+---
 
-### Routing
+## Prerequisites
 
-`src/lib/router.ts` is a small History API router with no dependency.
-`src/routes.tsx` maps each path to a page, its tab title and its meta
-description. Pages use plain `<a href="/pricing">` links; `App.tsx` intercepts
-internal links so they change page without a reload. To add a page, add an
-entry to `routes` and link to it.
+Install these on your machine before setting up the project:
 
-Because routes are real paths, the host must serve `index.html` for unknown
-paths. `render.yaml` has that rewrite; `npm run dev` and `npm run preview` do it
-out of the box.
+- **Node.js `>= 22.12.0`** (required by `"engines"` in `package.json` and native `node --test` / `fetch` / `--env-file` support) — check with `node -v`
+- **npm** (bundled with Node.js) — check with `npm -v`
+- **Git** — check with `git --version`
+- **PostgreSQL 14+** *(optional)* — only needed if you want to test or run against PostgreSQL locally instead of the default zero-config Local Atomic JSON store.
 
-## Content manager
+---
 
-The site has a content management system: [Decap CMS](https://decapcms.org), a
-React admin app that runs at `/admin/` and saves straight to this repository.
-There is no database and no extra server for the site itself.
+## Quick Local Setup (Step-by-Step)
 
-**How it works.** All editable copy is JSON under `content/`. The files in
-`src/data/` only give that JSON its types. An editor signs in at `/admin/`,
-changes a field and presses Publish; Decap commits the JSON file to GitHub,
-the host rebuilds the site, and the change is live a couple of minutes later.
-Every change is a commit, so history and rollback come from git.
-
-| In the content manager | File | Covers |
-|---|---|---|
-| Pages → Home page | `content/home.json` | hero words, logos, agents, product tabs, industries, steps, metrics, integrations, case studies, timeline, people hired, FAQs |
-| Pages → Solutions page | `content/solutions.json` | industries, company sizes, use cases |
-| Pages → Pricing page | `content/pricing.json` | plans, comparison table, billing questions |
-| Product pages | `content/products/*.json` | one entry per product; a new entry becomes a new page at `/products/<slug>` |
-| Company pages | `content/company/*.json` | leadership, careers (open roles), partners, technology, news, contact |
-| Site settings → Navigation and footer | `content/navigation.json` | header menus, footer columns and links |
-
-Uploaded images go to `public/assets/uploads/`. Section headings, the home
-hero paragraph, the About story and form labels are still in the components
-and are not editable from `/admin` yet.
-
-**Try it locally (no GitHub needed).**
+### 1. Clone and install dependencies
 
 ```bash
-npm run dev     # the site, http://localhost:5173
-npm run cms     # in a second terminal: lets /admin save to your working copy
+git clone https://github.com/raipavan/talent_tool3657.git
+cd talent_tool3657
+npm install
 ```
 
-Open http://localhost:5173/admin/ and press Login. Saving writes the JSON
-files on disk and the site hot-reloads.
+### 2. Configure environment variables (optional for basic local dev)
 
-**Go live (one-time setup).**
+The app runs out of the box with zero environment configuration using Local Atomic JSON storage in `./data/`. If you want to customize ports, PostgreSQL, or analytics IDs, copy `.env.example` to `.env`:
 
-1. In `public/admin/config.yml`, set `backend.repo` to the GitHub repository,
-   and `site_url` / `display_url` to the site address.
-2. Create a GitHub OAuth app (GitHub → Settings → Developer settings → OAuth
-   Apps). Its callback URL is `https://<cms-auth service>/callback`.
-3. Deploy `cms-auth/` (already in `render.yaml` as `talentpool365-cms-auth`)
-   and set `GITHUB_CLIENT_ID`, `GITHUB_CLIENT_SECRET` and `SITE_ORIGIN` (the
-   site address) on it. Put its address in `backend.base_url` in `config.yml`.
-4. Give each editor write access to the repository. That is the permission
-   model: whoever can push to the repo can edit the site.
+- **macOS / Linux (bash/zsh):**
+  ```bash
+  cp .env.example .env
+  ```
+- **Windows (PowerShell):**
+  ```powershell
+  Copy-Item .env.example .env
+  ```
 
-`cms-auth/server.mjs` exists because a browser app cannot hold the OAuth
-client secret; it has no dependencies. If the site moves to Netlify, delete it
-and use Netlify's built-in sign-in instead.
+> **Note:** `.env` and `data/` are gitignored so local secrets and test users are never committed. Vite automatically reads `VITE_*` variables from `.env`; for Node backend variables in `.env`, pass them via your shell environment or run Node with `--env-file=.env` (see [Production / Custom Backend](#self-hosted-node-server-vps--cloud-vm)).
 
-To add a field: add it to the JSON, to the type in `src/data/`, and to the
-matching `fields` list in `public/admin/config.yml`.
-
-### Placeholder content
-
-Leadership names, vacancies, partner programmes, press releases, team email
-addresses and the pricing FAQ in `content/company/*.json` and `content/pricing.json` are illustrative, like
-the case studies on the home page. Replace them with approved content before
-launch. The forms (`LeadForm.tsx`, `Contact.tsx`) show a confirmation but do
-not send anywhere yet.
-
-## Stack
-
-React 19 + TypeScript, bundled with Vite.
-
-- `src/App.tsx` — header, current page, footer
-- `src/routes.tsx` — path to page map
-- `src/pages/` — one component per page (or page template)
-- `src/components/` — sections and shared parts (`PageHero`, `SubNav`, `LeadForm`)
-- `content/` — all editable copy as JSON (see "Content manager")
-- `src/data/*.ts` — types for that copy
-- `public/admin/` — the content manager page and its `config.yml`
-- `cms-auth/` — GitHub sign-in service for the content manager
-- `src/lib/` — scroll reveals, counters, carousel and nav hooks
-- `src/styles/global.css` — brand tokens, layout, motion and responsive rules
-- `src/styles/showcase.css` — hero walkthrough, product showcase tabs, scroll-linked process rail
-- `src/styles/pages.css` — inner pages: page hero, sub-navigation, product, solutions and company layouts
-- `public/assets/` — logo lockups, favicons and product UI imagery
-
-## Motion
-
-Everything that moves on its own can be paused and stops under
-`prefers-reduced-motion`.
-
-- **Header** sits transparent on the hero and turns solid once the page scrolls.
-- **Hero** rotates the role in the headline (`heroRoles`) and steps the stage
-  rail under the dashboard through five stages (`heroStages`). Runs only while
-  on screen; pauses on hover, focus or the pause button.
-- **AI agents** (`Agents.tsx`) is a pinned, scroll-scrubbed canvas scene: a bot
-  flies station to station and does each job (search, scan resumes, grade,
-  interview, sign the offer) while five
-  agents hand one requisition down the line and everyone not advanced sinks
-  into the talent pool. Copy and figures live in `agents` in `content.ts`;
-  the section height in `showcase.css` (`.agents`) sets how long the scroll is.
-  Under reduced motion it becomes a plain five-item list.
-- **Hero image** floats up and down (`shot-float` in `showcase.css`).
-- **Solutions by industry** drifts left to right in a seamless loop
-  (`useAutoDrift`; the track renders its cards three times). It pauses on
-  hover and briefly after touch, wheel, keyboard or the arrows.
-- **Case studies** (`CaseStudies.tsx`, `caseStudies` in `content.ts`) is a
-  three-card grid: company, headline result, challenge, what changed, outcomes.
-- **People-hired cards** (`hires` in `content.ts`) show avatar, name and role;
-  employer and hiring story open on hover or focus, and stay open on touch
-  screens.
-- **Products** is an auto-advancing tab set (`useAutoRotate`, 6.5 s per tab)
-  with a coded vignette per product in `ProductMock.tsx`. Choosing a tab hands
-  control to the visitor.
-- **How it works** fills a rail and lights each step as it passes the middle of
-  the viewport (`useScrollProgress`).
-
-Timings live at the top of `showcase.css` (`--journey-ms`, `--showcase-ms`) and
-must match the intervals passed to `useAutoRotate` in `Hero.tsx` / `Products.tsx`.
-
-- **Bot** (`lib/bot.ts`) is the canvas-drawn mascot, shaded to read as a 3D
-  render (glossy white shell, glass visor,
-  blue eyes, headphones, chest logo, short legs with glowing soles) with five roles (radar dish, scanner visor,
-  examiner's cap and glasses, headset and microphone, tie). It
-  is reused beside the demo call-to-action (`BotBuddy.tsx`), where it gives a
-  thumbs-up and watches the pointer.
-- **Inner pages** share the home page's motion. `PageHero.tsx` has the same
-  photo backdrop and connected-points canvas, a staged entrance, an optional
-  rotating headline word (`rotate`) and a visual that floats and leans toward
-  the pointer; product pages add the bot in that product's costume. The product
-  capability list and the platform overview fill a rail as you scroll
-  (`useScrollProgress`), figures count up (`AnimatedValue.tsx`), careers,
-  partners and technology use the home page's step rail (`RailSteps.tsx`), a
-  pulse runs along the hiring line, and each page fades in on navigation. The
-  rules are the "Motion on inner pages" block in `pages.css`.
-- **Smaller touches**: connected-points backdrop in the hero (`Network.tsx`),
-  reading-progress line under the header, section headings that wipe in,
-  cards that light up under the pointer, a sync pulse across the integration
-  tiles, metric rules that draw across, and the interview screenshot swinging
-  into place.
-
-- **3D**: the hero dashboard leans toward the pointer with its floating cards
-  shifting at a different depth; cards and product screens tilt under the
-  pointer; product screens flip up when a tab changes; and `Orbit.tsx` draws
-  the integrations circling a turning hub on three tilted rings (canvas with
-  its own perspective projection, no 3D library).
-
-## Local development
+### 3. Start the development servers
 
 ```bash
-npm install
 npm run dev
 ```
 
-Then open http://127.0.0.1:5173
+This runs `server/dev.js`, which starts both servers together:
+- **Frontend (Vite):** `http://localhost:5173`
+- **CMS Backend API:** `http://localhost:4050` (Vite proxies `/api/*`, `/uploads/*`, `/sitemap.xml`, and `/robots.txt` automatically to port `4050`)
 
-## Build
+### 4. Complete First-Time Super Admin Setup
 
-```bash
-npm run build
+There are **no hardcoded default passwords** (`admin/admin` is disabled).
+
+1. Open **`http://localhost:5173/#/studio`** (or **`http://localhost:5173/admin`**).
+2. Because the fresh database has zero users, Studio automatically displays the **Create Super Admin Account** setup wizard.
+3. Choose your username (minimum 3 characters) and master password (minimum 8 characters), optionally add your display name and email, and submit.
+4. You will be signed in immediately as `super_admin` and can invite teammates under **Team & RBAC**.
+
+---
+
+## Storage & Database Configuration
+
+The storage factory (`server/db/index.js`) automatically selects the database engine based on `DATABASE_URL`:
+
+### Option A — Local Atomic JSON Store (Default when `DATABASE_URL` is unset)
+
+Leave `DATABASE_URL` blank for effortless single-machine setup. All CMS documents, revisions, schedules, users, media files, pages, redirects, leads, webhooks, and audit logs are written atomically to `./data/` (or `CMS_DATA_DIR` if set).
+
+### Option B — PostgreSQL (Recommended for Staging / Production)
+
+When `DATABASE_URL` is set, the server connects to PostgreSQL via `pg` Pool, automatically applies schema migrations (`server/db/migrations.js`) on startup, creates all 11 relational tables, and persists uploaded media binaries as `BYTEA` inside PostgreSQL (so uploads survive ephemeral container restarts).
+
+Example connection string:
+
+```env
+DATABASE_URL=postgresql://postgres:yourpassword@localhost:5432/talentpool365
 ```
 
-Outputs the static site to `dist/`. `npm run preview` serves the build locally.
+**SSL behavior (`server/db/postgresStore.js`):**
+- Connections to `localhost` or `127.0.0.1` disable SSL automatically.
+- Remote host URLs connect over SSL (`rejectUnauthorized: false`) by default. Set `PGSSLMODE=disable` only if connecting to a private/internal Postgres instance without TLS.
 
-## Deploy (Render)
+**Setting up local PostgreSQL (example):**
+```sql
+CREATE DATABASE talentpool365;
+```
+Export `DATABASE_URL` in your terminal before running `npm run dev` or `npm start`:
+- **PowerShell:** `$env:DATABASE_URL="postgresql://postgres:password@localhost:5432/talentpool365"; npm run dev`
+- **macOS/Linux:** `DATABASE_URL="postgresql://postgres:password@localhost:5432/talentpool365" npm run dev`
 
-`render.yaml` defines a free static site that runs `npm ci && npm run build` and
-publishes `dist/`. Connect this repo to Render and apply the Blueprint.
+---
 
-Brand tokens: `#172554` Deep Navy · `#4F46E5` Royal Violet · `#06B6D4` Cyan ·
-`#FFFFFF` · `#F8FAFC` (light bands now use ice blue `#E8EFFB`). Type: Plus Jakarta Sans (headings, regular with a bold italic accent), Inter (body),
-DM Sans (CTAs).
+## Environment Variables Reference
 
-## Headline accent
+| Variable | Side | Default | Purpose |
+|---|---|---|---|
+| `DATABASE_URL` | Backend | *(empty → Local JSON)* | PostgreSQL connection URI. Enables persistent SQL storage + `BYTEA` media storage. |
+| `PGSSLMODE` | Backend | *(auto)* | Set to `disable` to turn off TLS on non-localhost Postgres connections. |
+| `PORT` | Backend | `4050` | HTTP port for the Node server (`server/index.js`). |
+| `CMS_DATA_DIR` | Backend | `./data` | Custom directory path for Local JSON storage & local uploads. |
+| `CMS_JWT_SECRET` | Backend | *(auto-generated & persisted in DB)* | Secret key used to sign admin session JWTs. Strongly recommended to set explicitly in production. |
+| `SITE_URL` | Backend | `https://talent-tool3657.onrender.com` | Canonical public URL used in `/sitemap.xml`, `/robots.txt`, Open Graph tags, and SSR links. |
+| `VITE_CMS_API_URL` | Frontend | *(empty → same-origin)* | Base URL of the CMS API if frontend and backend are hosted on different origins. |
+| `VITE_GA4_ID` | Frontend | *(empty)* | Fallback Google Analytics 4 ID (`G-XXXXXXXXXX`); can be overridden in Studio SEO settings. |
+| `VITE_GTM_ID` | Frontend | *(empty)* | Fallback Google Tag Manager ID (`GTM-XXXXXXX`). |
+| `VITE_META_PIXEL_ID` | Frontend | *(empty)* | Fallback Meta Pixel ID. |
+| `VITE_LINKEDIN_PARTNER_ID` | Frontend | *(empty)* | Fallback LinkedIn Insight Tag ID. |
+| `VITE_HOTJAR_ID` | Frontend | *(empty)* | Fallback Hotjar Site ID. |
 
-Wrap a phrase in asterisks in any `SectionHead` title (`"Do more *with less*"`)
-or use `<em className="accent">`. It renders bold italic: Royal Violet on light
-sections, Cyan on Deep Navy.
+---
 
-## Theme
+## Available NPM Scripts
 
-The page sits on Deep Navy `#172554`, with light ice-blue `#E8EFFB` bands in between (`--color-bg-alt` in `showcase.css`).
-Add `section--light` to a `<section>` to make it a light band (Products, How it
-works, Case studies and About use it); the rules are the "Round 6" block at the
-end of `showcase.css`. The dark token overrides are the "Round 3" block in
-`showcase.css`; white product screens (`.mock`,
-`.hero-chip`) keep the light tokens. Logo height is set there too
-(`.site-header .brand-logo--light`).
+| Command | Description |
+|---|---|
+| `npm run dev` | Starts both the CMS backend (`:4050`) and Vite dev frontend (`:5173`) in one terminal. |
+| `npm run dev:api` | Runs only the Node.js CMS backend (`server/index.js`). |
+| `npm run dev:web` | Runs only the Vite React dev server. |
+| `npm run typecheck` | Runs TypeScript strict check (`tsc --noEmit`). |
+| `npm run test:cms` | Runs the automated CMS backend test suite (`node --test server/tests/cms-api.test.mjs`). |
+| `npm run build` | Type-checks and builds the optimized frontend bundle into `dist/`. |
+| `npm start` | Starts the unified production server (`node server/index.js`), serving `dist/` + API + SSR meta injection. |
+| `npm run preview` | Previews the static `dist/` Vite build without running the CMS API backend. |
 
-# talent_tool3657
+---
+
+## Using & Configuring the CMS Studio
+
+### Access URLs
+- **Public Website:** `http://localhost:5173/`
+- **CMS Studio:** `http://localhost:5173/#/studio` or `http://localhost:5173/admin`
+
+### Role-Based Access Control (RBAC)
+
+Super Admins can add and manage team accounts in **Administration → Team & RBAC**:
+
+| Role | Capabilities |
+|---|---|
+| `super_admin` | Full control: content editing, publishing, rollbacks, scheduling, pages, media, leads, SEO/plugins, redirects, user management, webhooks, and audit logs. |
+| `editor` | Edit content, manage Page Builder pages, upload media, manage leads, configure SEO/redirects, schedule, publish live, roll back, and view audit logs. Cannot manage users or webhooks. |
+| `seo_manager` | Read content/pages, manage per-page SEO meta tags, configure analytics/tracking plugins, edit scripts/robots, and manage 301/302 redirects. |
+| `reviewer` | Read-only access to inspect content and preview drafts without publishing or editing live settings. |
+
+### Publishing Workflow
+1. Edit copy in **Homepage**, **Inner Pages & Blog**, **Pricing & Plans**, **Header & Footer**, or **SEO, Plugins & Redirects**. Edits save automatically to the **draft** document.
+2. Click **👁️ Split Preview** in the top bar to inspect unpublished draft changes live across Desktop (`100%`), Tablet (`768px`), and Mobile (`390px`) viewports.
+3. Click **🚀 Publish Live** to snapshot an immutable revision and push changes to public visitors, or click **⏰ Schedule** to deploy automatically at a chosen timestamp, or **Discard Draft** to revert draft edits.
+
+### SEO, Plugins & Webhooks
+- **SEO & Tracking (`Growth & SEO → SEO, Plugins & Redirects`)**: Configure per-page meta title/description/OG image/canonical/Schema type/`noindex`, connect GA4/GTM/Meta/LinkedIn/Hotjar/live chat without code edits, add HTTP `301`/`302` redirects, and inspect `/sitemap.xml` and `/robots.txt`. (Note: third-party analytics respect the visitor's cookie consent choices via `src/lib/analytics.ts`.)
+- **Webhooks (`Administration → Outbound Webhooks`)**: Register webhook URLs for `content.published`, `lead.created`, or `*`. Requests include `X-TP365-Signature: sha256=<hmac>` when a secret is set, and can be verified immediately with **Send Test Ping**.
+
+---
+
+## Production Deployment
+
+### Option 1: Render Blueprint (`render.yaml`)
+
+`render.yaml` provisions both a managed PostgreSQL database (`talentpool365-cms-db`) and a unified Node web service (`talent-tool3657`):
+
+1. Push the repository to GitHub/GitLab.
+2. In Render, choose **New → Blueprint** and connect your repository.
+3. Render creates `talentpool365-cms-db`, links `DATABASE_URL`, auto-generates `CMS_JWT_SECRET`, runs `npm install && npm run build`, and starts `npm start`.
+4. Update `SITE_URL` in Render's Environment tab to match your custom domain (e.g., `https://yourdomain.com`).
+5. Visit `https://yourdomain.com/#/studio` once after deployment to create your initial `super_admin` account.
+
+### Option 2: Self-Hosted Node Server (VPS / Docker / Cloud VM)
+
+1. Install Node.js `>= 22.12.0` and PostgreSQL (or keep Local JSON).
+2. Clone and build:
+   ```bash
+   npm ci
+   npm run build
+   ```
+3. Set environment variables (`NODE_ENV=production`, `PORT=4050`, `SITE_URL=https://yourdomain.com`, `CMS_JWT_SECRET=<random-hex>`, and optional `DATABASE_URL`).
+   - If storing variables in a `.env` file, run:
+     ```bash
+     node --env-file=.env server/index.js
+     ```
+   - Or if variables are already exported in the environment/process manager (`systemd`, `pm2`, Docker):
+     ```bash
+     npm start
+     ```
+4. Place a reverse proxy (Nginx, Caddy, Cloudflare) in front of `PORT` to terminate HTTPS and forward requests to Node.
+
+---
+
+## Project Architecture
+
+```text
+server/
+  index.js              # Unified HTTP API, /uploads binary serving, sitemap/robots, 301s, SSR meta injection
+  dev.js                # Local dev runner (Node API :4050 + Vite :5173)
+  auth/rbac.js          # Scrypt hashing, HMAC JWT tokens, login rate limiter, role matrix
+  db/
+    index.js            # Selects PostgreSQL or Local JSON storage automatically
+    migrations.js       # 11-table PostgreSQL DDL schema
+    postgresStore.js    # PostgreSQL repository (incl. FOR UPDATE SKIP LOCKED schedules)
+    jsonStore.js        # Local atomic JSON repository + legacy data migration
+  services/webhooks.js  # Non-blocking HMAC-SHA256 webhook dispatcher & test ping
+  tests/cms-api.test.mjs# Automated end-to-end backend test suite
+src/
+  cms/
+    api.ts              # Typed REST client for auth, drafts, revisions, media, pages, leads, webhooks
+    CmsProvider.tsx     # Live/draft state, postMessage preview sync, section updaters & hooks
+    permissions.ts      # Role metadata and permission checks
+    siteDefaults.ts     # Default structured content and TypeScript models
+  components/cms/       # Studio shell, editors, Page Builder, Rich Text, Media, SEO, RBAC, Leads, Webhooks
+  pages/                # 29 built-in routes + DynamicCmsPage, BlogPostDetailPage, SanityStudioPage
+  lib/analytics.ts      # Cookie-consent-gated GA4/GTM/Pixel/Hotjar & custom script loader
+content/                # Seed JSON defaults imported into siteDefaults.ts
+public/assets/          # Built-in images, videos, favicons, and logos
+```
+
+---
+
+## Troubleshooting
+
+- **Node version errors (`node --test` or syntax issues):** Verify `node -v` prints `v22.12.0` or higher.
+- **Port `4050` or `5173` already in use:** Stop any previous `node server/dev.js` process or override the backend port with `PORT=4051` (note: update `vite.config.ts` proxy target if running Vite dev on a non-4050 backend port).
+- **Want to reset the local Super Admin & re-run the Setup Wizard:** Stop the dev server, delete `./data/` (e.g., `rm -rf data` or `Remove-Item -Recurse -Force data` in PowerShell), and restart `npm run dev`.
+- **PostgreSQL SSL error on a local or non-TLS private database:** Ensure `DATABASE_URL` points to `localhost`/`127.0.0.1` or set `PGSSLMODE=disable`.
